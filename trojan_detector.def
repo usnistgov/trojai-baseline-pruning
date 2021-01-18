@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: nvidia/cuda:10.0-devel
+
+%setup
+    mkdir ${SINGULARITY_ROOTFS}/workspace
+
+%files
+    ./trojan_detector.py /
+    ./model_classifier.py /
+    ./my_dataset.py /
+    ./my_folders.py /
+    ./torch_pruning /
+
+%post -c /bin/bash
+    #Now install everything
+    apt update && apt install -y curl 
+
+    curl -LO http://repo.continuum.io/miniconda/Miniconda3-4.5.12-Linux-x86_64.sh
+    bash Miniconda3-4.5.12-Linux-x86_64.sh -p /miniconda -b
+    rm Miniconda3-4.5.12-Linux-x86_64.sh
+    PATH=/miniconda/bin:${PATH}
+
+    conda update -y conda
+    conda install -y pytorch==1.5.0 torchvision==0.6.0 cpuonly -c pytorch
+
+    echo "check torch_pruning folder"
+    ls -R ./torch_pruning
+    conda install scikit-image
+
+%environment
+    export PATH=/miniconda/bin:${PATH}
+
+
+%help
+    This is a pruning-based baseline approach to trojan detection in AI models
+
+%labels
+     Author peter.bajcsy@nist.gov
+     Version 1.0.0
+
+%runscript
+    exec python3 /trojan_detector.py "$@"
+

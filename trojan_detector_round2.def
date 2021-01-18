@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: pytorch/pytorch:latest
+
+%files
+    ./trojan_detector_round2.py /
+    ./model_classifier_round2.py /
+    ./my_dataset.py /
+    ./my_folders_round2.py /
+    ./linear_regression.py
+    ./reset_prune.py
+    ./graph_classifier_round2.py
+
+%post
+    /opt/conda/bin/conda install scikit-image
+    /opt/conda/bin/conda install -y pytorch==1.5.0 torchvision==0.6.0 cpuonly -c pytorch
+
+%help
+    This is a reset-pruning based baseline approach to trojan detection in AI models
+
+%labels
+     Author peter.bajcsy@nist.gov
+     Version 1.1.0
+
+%runscript
+    exec python3 /trojan_detector_round2.py "$@"
+
+
+
+
+
