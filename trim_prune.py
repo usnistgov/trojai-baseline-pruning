@@ -18,9 +18,9 @@ import torch
 import torch.nn as nn
 import random
 import numpy as np
-import threading
-from guppy import hpy
-import gc
+#import threading
+#from guppy import hpy
+#import gc
 
 """
 This class is designed to clamp/trim coefficient in conv2d and batchnorm

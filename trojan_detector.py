@@ -32,7 +32,7 @@ from remove_prune import prune_model
 from reset_prune import reset_prune_model
 from trim_prune import trim_model
 from linear_regression import linear_regression_round1, read_regression_coefficients, linear_regression_prediction
-from guppy import hpy
+#from guppy import hpy
 import threading
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
