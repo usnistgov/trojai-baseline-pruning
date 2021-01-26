@@ -16,87 +16,34 @@ import copy
 import statistics
 import torch
 import torch.nn as nn
-import torch_pruning as tp
 import random
 import argparse
 import os, sys
 import skimage.io
 import numpy as np
-import time
+import torchvision
 import csv
+import time
 
-
-from model_classifier import model_classifier
+from linear_regression import read_regression_coefficients, linear_regression_prediction
+from model_classifier_round2 import model_classifier
 from my_dataset import my_dataset
 from remove_prune import prune_model
 from reset_prune import reset_prune_model
 from trim_prune import trim_model
-from linear_regression import linear_regression_round1, read_regression_coefficients, linear_regression_prediction
-#from guppy import hpy
-import threading
 
+"""
+This class is designed for detecting trojans in TrojAI Round 2 Challenge datasets
+see https://pages.nist.gov/trojai/docs/data.html#round-2
+This code is an adjusted version of the trojan detector for the Round 1 of the TrojAI challenge
+"""
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-"""
-This class is designed for detecting trojans in TrojAI Round 1 Challenge datasets
-see https://pages.nist.gov/trojai/docs/data.html#round-1
-"""
-#import cifar_resnet as resnet
-#from torchvision.datasets import CIFAR10
-# classification
-# from torchvision.models.densenet import densenet121
-# from torchvision.models.resnet import resnet50
-# from torchvision.models.inception import inception_v3
-
-
-def random_prune(model, result_filepath, example_inputs, output_transform):
-    """
-    This method is doing random remove-pruning modules
-    Args:
-        model ():
-        result_filepath ():
-        example_inputs ():
-        output_transform ():
-
-    Returns: pruned model
-
-    """
-    model.cpu().eval()
-    prunable_module_type = (nn.Conv2d, nn.BatchNorm2d)
-    prunable_modules = [m for m in model.modules() if isinstance(m, prunable_module_type)]
-    ori_size = tp.utils.count_params(model)
-    DG = tp.DependencyGraph().build_dependency(model, example_inputs=example_inputs, output_transform=output_transform)
-    for layer_to_prune in prunable_modules:
-        # select a layer
-
-        if isinstance(layer_to_prune, nn.Conv2d):
-            prune_fn = tp.prune_conv
-        elif isinstance(layer_to_prune, nn.BatchNorm2d):
-            prune_fn = tp.prune_batchnorm
-
-        ch = tp.utils.count_prunable_channels(layer_to_prune)
-        rand_idx = random.sample(list(range(ch)), min(ch // 2, 10))
-        plan = DG.get_pruning_plan(layer_to_prune, prune_fn, rand_idx)
-        plan.exec()
-
-    # print(model)
-    with torch.no_grad():
-        out = model(example_inputs)
-        if output_transform:
-            out = output_transform(out)
-        # print(model_name)
-        new_size = tp.utils.count_params(model)
-        print("  Params: %s => %s" % (ori_size, new_size))
-        print("  Output: ", out.shape)
-        print("------------------------------------------------------\n")
-        with open(result_filepath, 'a') as fh:
-            fh.write("{} \n".format(new_size))
 
 
 def eval(model, test_loader, result_filepath, model_name):
     correct = 0.0
     total = 0.0
-    device = "cpu" #= torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu"  # = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
     with torch.no_grad():
@@ -107,7 +54,7 @@ def eval(model, test_loader, result_filepath, model_name):
             # prepare input batch
             # read the image (using skimage)
             img = skimage.io.imread(test_loader.dataset.list_IDs[i])
-            img = preprocess_round1(img, model_name)
+            img = preprocess_round2(img, model_name)
             # convert image to a gpu tensor
             batch_data = torch.FloatTensor(img, device=device)
 
@@ -150,20 +97,19 @@ def get_dataloader(dataset):
     ################################################################
 
 
-def preprocess_round1(img, model_name):
+def preprocess_round2(img, model_name):
     # code from trojai example
-
     # perform center crop to what the CNN is expecting 224x224
-    # h, w, c = img.shape
-    # dx = int((w - 224) / 2)
-    # dy = int((w - 224) / 2)
-    # img = img[dy:dy + 224, dx:dx + 224, :]
+    h, w, c = img.shape
+    dx = int((w - 224) / 2)
+    dy = int((w - 224) / 2)
+    img = img[dy:dy + 224, dx:dx + 224, :]
 
-    # convert to BGR (training codebase uses cv2 to load images which uses bgr format)
-    r = img[:, :, 0]
-    g = img[:, :, 1]
-    b = img[:, :, 2]
-    img = np.stack((b, g, r), axis=2)
+    # If needed: convert to BGR
+    # r = img[:, :, 0]
+    # g = img[:, :, 1]
+    # b = img[:, :, 2]
+    # img = np.stack((b, g, r), axis=2)
 
     # perform tensor formatting and normalization explicitly
     # convert to CHW dimension ordering
@@ -173,6 +119,8 @@ def preprocess_round1(img, model_name):
     # normalize the image
     img = img - np.min(img)
     img = img / np.max(img)
+    # convert image to a gpu tensor
+    # batch_data = torch.FloatTensor(img)
 
     # if 'inception' in model_name:
     #     if not np.array_equal(img.shape, (1, 3, 299, 299)):
@@ -189,23 +137,24 @@ def preprocess_round1(img, model_name):
 
 def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_dirpath, example_img_format='png'):
     print('model_filepath = {}'.format(model_filepath))
-    print('result_filepath = {}'.format(result_filepath))
+    print('result_fileRoot = {}'.format(result_filepath))
     print('scratch_dirpath = {}'.format(scratch_dirpath))
     print('examples_dirpath = {}'.format(examples_dirpath))
     print('example_img_format = {}'.format(example_img_format))
 
+    # start timer
+    start = time.time()
+    #######################################
     # adjust to the hardware platform
-    mydevice = "cpu" # torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    mydevice = "cpu"  # torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # test only
     # t = torch.tensor(range(15), device=mydevice)
     # print('torch HW platform test with a tensor: %s \n' % (t))
     ############################
     # to avoid messages about serialization on cpu
     torch.nn.Module.dump_patches = 'False'
-    #####################
+    #################################
 
-    # start timer
-    start = time.time()
     # read the ground truth label
     model_dirpath = os.path.dirname(model_filepath)
     gt_model_label_filepath = os.path.join(model_dirpath, 'ground_truth.csv')
@@ -220,19 +169,24 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     else:
         print('missing ground truth label for the model')
         gt_model_label = -1
+
     ##################
     # decide which model architecture is represented by the provided AI Model
     a = model_classifier(model_filepath)
-    model_type, min_model_size_delta = a.classify_type()
+    # determine the AI model architecture based on loaded class type
+    model_class_str, model_architecture = a.classify_architecture(mydevice)
+    model_name, model_type, min_model_size_delta = a.classify_type(model_architecture)
     print('model_type: %s\n' % model_type)
     print('file size delta between a model and the reference model: %s\n' % min_model_size_delta)
     model_name = a.switch_architecture(model_type)
     print('classified the model as:\t', model_name)
+    print('model size: \t', a.model_size)
     ref_model_size = a.model_size + min_model_size_delta
     print('reference model size: \t', ref_model_size)
-    #######################################
+
+    #####################
     # save the file size and model name information
-    scratch_filepath = os.path.join(scratch_dirpath, model_name+'_log.csv')
+    scratch_filepath = os.path.join(scratch_dirpath, model_name + '_log.csv')
     with open(scratch_filepath, 'a') as fh:
         fh.write("{}, ".format(model_name))
         fh.write("model_filepath, {}, ".format(model_filepath))
@@ -240,30 +194,37 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         fh.write("ref_model_size, {:.4f}, ".format(ref_model_size))
         fh.write("delta_model_size, {:.4f}, ".format(min_model_size_delta))
         fh.write("gt_model_label, {}, ".format(gt_model_label))
+
     #################################
     # TODO these are the parameters that must be configured
-    pruning_method = 'reset' # remove or reset or trim
+    pruning_method = 'reset'  # remove or reset or trim
     sampling_method = 'targeted'  # random or targeted or uniform sampling
-    ranking_method = 'L1' # L1, L2, Linf, STDEV
-    num_samples = 15 # nS=5 or 10 or 15 or 25 was tested
-    num_images_used = 10 # nD=10,20,30,40 was tested
-    print('pruning_method (PM):', pruning_method, ' sampling method (SM):', sampling_method, ' ranking method (RM):', ranking_method)
+    ranking_method = 'L1'  # L1, L2, Linf, STDEV
+    num_samples = 25  # nS=5 or  10 or 15 or 25 was tested
+    # set the number of images used
+    num_images_used = 10  # nD=10,20,30,40 was tested
+    print('pruning_method (PM):', pruning_method, ' sampling method (SM):', sampling_method, ' ranking method (RM):',
+          ranking_method)
     print('num_samples (nS):', num_samples, ' num_images_used (nD):', num_images_used)
 
     # adjustments per model type for trim method
-    # empirical knowledge: for trim_pruned_amount=1 -> 0.4, for trim_pruned_amount=0.5 -> 0.2
     trim_pruned_amount = 0.5
     if 'trim' in pruning_method:
-         sampling_probability = 4.0*trim_pruned_amount*np.ceil(1000.0 / num_samples) / 1000  # 0.2 # 1.0/num_samples #0.2 # before 0.4
-
-
-    # adjustments per model type for reset method
-    if 'reset' in pruning_method:
-        sampling_probability = np.ceil(1000.0/num_samples)/1000
+        sampling_probability = 4.0 * trim_pruned_amount * np.ceil(
+            1000.0 / num_samples) / 1000  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
     # these values are computed from each architecture by 1/(min number of filters per layer) - rounded up at the second decimal
     # this guarantees that at least one filter is removed from each layer
-    min_one_filter = {"inceptionv3": 0.04, "resnet50": 0.03, "densenet121": 0.04}
+    min_one_filter = {"shufflenet1_0" :0.05,	"shufflenet1_5" :0.05,	"shufflenet2_0" :0.05,
+                          "inceptionv1(googlenet)" :0.07,	"inceptionv3" :0.04,	"resnet18" :0.03,
+                          "resnet34" :0.03,	"resnet50" :0.03,	"resnet101" :0.03,	"resnet152" :0.03,
+                         "wide_resnet50" :0.03,	"wide_resnet101" :0.03,
+                          "squeezenetv1_0" :0.21,	"squeezenetv1_1" :0.15,	"mobilenetv2" :0.07,
+                          "densenet121" :0.04,"densenet161" :0.03,	"densenet169" :0.04,	"densenet201" :0.04,
+                          "vgg11_bn" :0.03, "vgg13_bn" :0.03,	"vgg16_bn" :0.03}
+
+    if 'reset' in pruning_method:
+        sampling_probability = np.ceil(1000.0/num_samples)/1000
 
     # adjustments per model type for remove method
     if 'remove' in pruning_method:
@@ -281,16 +242,52 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
             # this value is computed as if for num_samples = 50 --> sampling_probability = 0.02
             sampling_probability = 0.02
 
-    # if 'remove' in pruning_method:
-    #     if 'inception' in model_name:
-    #         sampling_probability = 0.05
-    #     if 'resnet' in model_name:
-    #         sampling_probability = 0.02
-    #     if 'densenet' in model_name:
-    #         sampling_probability = 0.02
+    # TEST
+    # filter_hist_filepath = './number_filters.csv'
+    # with open(filter_hist_filepath, 'a') as fh:
+    #     fh.write("model_name,{}, ".format(model_name))
+    #     fh.write("pruning_method,{}, ".format(pruning_method))
+    #     fh.write("ranking_method,{}, ".format(ranking_method))
+    #     fh.write("sampling_method,{}, ".format(sampling_method))
+    #     fh.write("sampling_probability,{}, ".format(sampling_probability))
+    #     fh.write("\n")
 
-    print('model_name:', model_name, ' sampling_probability:', sampling_probability)
 
+
+    ##########################################
+    # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
+    if 'remove' in pruning_method and 'shufflenet' in model_name:
+        scratch_filepath = os.path.join(scratch_dirpath, model_name + '_log.csv')
+        prob_trojan_in_model = 0.5
+        with open(scratch_filepath, 'a') as fh:
+            # fh.write("model_filepath, {}, ".format(model_filepath))
+            fh.write("number of params, {}, ".format(0))
+            fh.write("{}, ".format(model_name))
+            fh.write("{}, ".format(pruning_method))
+            fh.write("{}, ".format(sampling_method))
+            fh.write("{}, ".format(ranking_method))
+            fh.write("{}, ".format(num_samples))
+            fh.write("{}, ".format(num_images_used))
+            fh.write("{:.4f}, ".format(sampling_probability))
+            for i in range(num_samples):
+                fh.write("{:.4f}, ".format(0))
+
+            fh.write("mean, {:.4f}, ".format(0))
+            fh.write("stdev, {:.4f}, ".format(0))
+            fh.write("min, {:.4f}, ".format(0))
+            fh.write("max, {:.4f}, ".format(0))
+            fh.write("coef_var, {:.4f}, ".format(0))
+            fh.write("num_min2max_ordered, {}, ".format(0))
+            fh.write("num_max2min_ordered, {}, ".format(0))
+            fh.write("slope, {:.4f}, ".format(0))
+            fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
+            fh.write("execution time [s], {}, \n".format((0)))
+
+        # write the result to a file
+        with open(result_filepath, 'w') as fh:
+            fh.write("{}".format(prob_trojan_in_model))
+
+        return prob_trojan_in_model
     ##############################################################
     # Inference the example images in data
     fns = [os.path.join(examples_dirpath, fn) for fn in os.listdir(examples_dirpath) if
@@ -298,40 +295,49 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     # if len(fns) > 10:
     #     fns = fns[0:5]
     #
-    len_temp = len(fns)
-    step = len_temp // num_images_used
+    num_images_avail = len(fns)
+
+    with open(scratch_filepath, 'a') as fh:
+        fh.write("num_images_avail, {}, ".format(num_images_avail))
+        fh.write("num_images_used, {}, ".format(num_images_used))
+
+    print('number of images available for eval per model:', num_images_avail)
+
+    if num_images_avail < num_images_used:
+        num_images_used = num_images_avail
+        print('WARNING: ', num_images_avail, ' is less than ', num_images_used)
+        print(
+            'WARNING: this should never happen for round 2 since there are 5-25 classes per model and 10-20 images per class')
+
+    step = num_images_avail // num_images_used
     temp_idx = []
-    for i in range(step // 2, len_temp, step):
+    for i in range(step // 2, num_images_avail, step):
         temp_idx.append(i)
     fns = [fns[i] for i in temp_idx]
-    #print('selected images:', fns)
-    print('num_images_used:', num_images_used)
-    del temp_idx
+    print('selected images:', fns)
 
+    # prepare data list for evaluations
     mydata = {}
     mydata['test'] = my_dataset(fns)
-
     test_loader = get_dataloader(mydata['test'])
 
-    if 'fcn' in model_name or 'deeplabv3' in model_name:
-        output_transform = lambda x: x['out']
-    else:
-        output_transform = None
-
-    print(model_name)
-    scratch_filepath = os.path.join(scratch_dirpath, model_name + '_log.csv')
-
-    # TODO explore the number of threads
-    torch.set_num_threads(1)
+    #######################################
     # load a model
-    print('loading model: ', scratch_filepath)
-    model_orig = torch.load(model_filepath, map_location=mydevice)
+    try:
+        model_orig = torch.load(model_filepath, map_location=mydevice)
+    except:
+        print("Unexpected loading error:", sys.exc_info()[0])
+        # close the line
+        with open(scratch_filepath, 'a') as fh:
+            fh.write("\n")
+        raise
+
     # model = torch.nn.modules.container.Sequential.cpu(model)
     # the eval is needed to set the model for inferencing
     # model.eval()
     params = sum([np.prod(p.size()) for p in model_orig.parameters()])
     print("Before Number of Parameters: %.1fM" % (params / 1e6))
-    acc_model = 1.0 # sanity check --> eval(model, test_loader, result_filepath, model_name)
+    acc_model = 1.0  # eval(model_orig, test_loader, result_filepath, model_name)
     print("Before Acc=%.4f\n" % (acc_model))
     # with open(scratch_filepath, 'a') as fh:
     #     fh.write("model_filepath: {}, ".format(model_filepath))
@@ -339,63 +345,62 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     #     fh.write("original number of params: {}, ".format((params / 1e6)))
     #     fh.write("original model accuracy: {} \n".format(acc_model))
 
-    # random_prune(model, result_filepath, example_inputs=batch_data, output_transform=output_transform)
+    #####################################
+    # prepare the model and transforms
+    # TODO check is setting the model variable here works
+    if 'googlenet' in model_name or 'inception' in model_name:
+        model_orig.aux_logits = False
+    elif 'fcn' in model_name or 'deeplabv3' in model_name:
+        model_orig.aux_loss = None
+
+    if 'fcn' in model_name or 'deeplabv3' in model_name:
+        output_transform = lambda x: x['out']
+    else:
+        output_transform = None
+
+    print(model_name)
 
     acc_pruned_model_shift = []
     pruning_shift = []
-    #hp = hpy()
 
-    # the L1 norm deterministic sampling
     for sample_shift in range(num_samples):
-        print('sample_shift:', sample_shift)
         model = copy.deepcopy(model_orig)
         # if sample_shift > 0:
         #     # load a model
         #     model = torch.load(model_filepath, map_location=mydevice)
 
-        print('INFO: pruning for sample_shift:', sample_shift)
-        if 'remove' in pruning_method:
-            prune_model(model, model_name, output_transform, sample_shift, sampling_method, ranking_method, sampling_probability, num_samples)
-        if 'reset' in pruning_method:
-            reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_method, sampling_probability,  num_samples)
-        if 'trim' in pruning_method:
-            trim_model(model, model_name, sample_shift, sampling_method, ranking_method, sampling_probability,  num_samples, trim_pruned_amount)
+        # test model
+        # acc_not_pruned_model = eval(model, test_loader, result_filepath, model_name)
+        # print('model before pruning: ', model_filepath, ' acc_model: ', acc_model, ' acc_not_pruned_model: ', acc_not_pruned_model)
+        # #print('before pruning:', model)
 
-        # testing the memory leak
-        # before = hp.heap()
-        # lock = threading.Lock()
-        # with lock:
-        #     trim_model(model, model_name, sample_shift, sampling_method, ranking_method,sampling_probability)
-        #
-        # after = hp.heap()
-        # leftover = after - before
-        # #print('before:', before, ' after:', after, ' leftover:', leftover)
-        # print('leftover max byid:', leftover.byrcs[0].byid)
-        # print('leftover max byvia:', leftover.byrcs[0].byvia)
-        # print('leftover max .referents:', leftover.byrcs[0].referents)
-        # print('leftover max .referrers.byrcs:', leftover.byrcs[0].referrers.byrcs)
-        # print('one model: leftover.domisize:', leftover.domisize)
+        print('INFO: reset- pruning for sample_shift:', sample_shift)
+        try:
+            if 'remove' in pruning_method:
+                prune_model(model, model_name, output_transform, sample_shift, sampling_method, ranking_method,
+                            sampling_probability, num_samples)
+            if 'reset' in pruning_method:
+                reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_method, sampling_probability,
+                                  num_samples)
+            if 'trim' in pruning_method:
+                trim_model(model, model_name, sample_shift, sampling_method, ranking_method, sampling_probability,
+                           num_samples, trim_pruned_amount)
 
-        # import pdb;
-        # pdb.set_trace()
+        except:
+            # this is relevant to PM=Remove because it fails for some configurations to prune the model correctly
+            print("Unexpected pruning error:", sys.exc_info()[0])
+            # close the line
+            with open(scratch_filepath, 'a') as fh:
+                fh.write("\n")
+            raise
 
-        # print(model)
-        params = sum([np.prod(p.size()) for p in model.parameters()])
-        print("Number of Parameters: %.1fM" % (params / 1e6))
         acc_pruned_model = eval(model, test_loader, result_filepath, model_name)
         print('model: ', model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
         acc_pruned_model_shift.append(acc_pruned_model)
-        print('acc_pruned_model_shift:', len(acc_pruned_model_shift))
         pruning_shift.append(sample_shift)
-        print('pruning_shift:', len(pruning_shift))
         del model
 
-
-    # as the uniform sampling of filter shift its samples towards the larger L1 norm filters
-    # the clean model have a larger stdev and typically decrease in accuracy with elimination of larger L1 norm filters while
-    # the trojan models have a smaller stdev and up-and-dwon accuracy - this is true for inception and resnet but not for densenet
-
-    # compute the slope from the samples
+    # compute simple stats of the measured signal (vector of accuracy values over a set of pruned models)
     mean_acc_pruned_model = statistics.mean(acc_pruned_model_shift)
     mean_pruning_shift = statistics.mean(pruning_shift)
     slope = 0.0
@@ -404,44 +409,31 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         slope += (pruning_shift[i] - mean_pruning_shift) * (acc_pruned_model_shift[i] - mean_acc_pruned_model)
         denominator += (pruning_shift[i] - mean_pruning_shift) * (pruning_shift[i] - mean_pruning_shift)
 
-    slope = slope/denominator
-    print ('INFO: slope:', slope)
+    slope = slope / denominator
+    print('INFO: slope:', slope)
 
     stdev_acc_pruned_model = statistics.stdev(acc_pruned_model_shift)
-    min_acc_pruned_model  = min(acc_pruned_model_shift)
+    min_acc_pruned_model = min(acc_pruned_model_shift)
     max_acc_pruned_model = max(acc_pruned_model_shift)
     print('mean_acc_pruned_model:', mean_acc_pruned_model, ' stdev_acc_pruned_model:', stdev_acc_pruned_model)
     print('min_acc_pruned_model:', min_acc_pruned_model, ' max_acc_pruned_model:', max_acc_pruned_model)
 
     # the samples should be ordered from the largest accuracy to the smallest accuracy
-    # since the pruning is removing the smallest L1 norm to teh largest L1 norm
+    # since the pruning is removing the smallest L1 norm to the largest L1 norm
     num_min2max_ordered = 0
     num_max2min_ordered = 0
-    for i in range(len(acc_pruned_model_shift)-1):
-        if acc_pruned_model_shift[i] < acc_pruned_model_shift[i+1]:
+    for i in range(len(acc_pruned_model_shift) - 1):
+        if acc_pruned_model_shift[i] < acc_pruned_model_shift[i + 1]:
             num_min2max_ordered += 1
-        if acc_pruned_model_shift[i] > acc_pruned_model_shift[i+1]:
+        if acc_pruned_model_shift[i] > acc_pruned_model_shift[i + 1]:
             num_max2min_ordered += 1
 
-    # low coef of variation indicates trojan is present
+    # low coefficient of variation could indicate that a trojan might be present
     if mean_acc_pruned_model > 0.01:
-        coef_var = stdev_acc_pruned_model/mean_acc_pruned_model
+        coef_var = stdev_acc_pruned_model / mean_acc_pruned_model
     else:
         coef_var = 0.0
 
-    # this achieved 38% classification error for 10 image samples, 5 pruned model samples
-    # if 'resnet' in model_name or 'inception' in model_name:
-    #    prob_trojan_in_model = 1.0 - coef_var
-    # else:
-    #     # for densenet the relationship is inverse
-    #     prob_trojan_in_model = coef_var
-    #     prob_trojan_in_model = 2 * coef_var
-    #
-    # # this is to shift the threshold from 0.5 to 0.6
-    # prob_trojan_in_model = prob_trojan_in_model - 0.1
-
-
-    #prob_trojan_in_model = linear_regression_round1(model_name,acc_pruned_model_shift)
     prob_trojan_in_model = coef_var
     if prob_trojan_in_model < 0:
         prob_trojan_in_model = 0
@@ -450,11 +442,11 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         prob_trojan_in_model = 1.0
     print('coef of variation:', coef_var, ' prob_trojan_in_model:', prob_trojan_in_model)
 
-    # round 1 - linear regression coefficients applied to the num_samples (signal measurement)
+    # round 3 - linear regression coefficients applied to the num_samples (signal measurement)
     # this function should be enabled if  the estimated multiple linear correlation coefficients should be applied
     if num_samples == 15 and 'reset' in pruning_method and 'L1' in ranking_method and 'targeted' in sampling_method:
-        print('Applying existing model r1_reset_L1_targeted_15_10_0p07.csv')
-        linear_regression_filepath = './linear_regression_data/r1_reset_L1_targeted_15_10_0p07.csv'
+        print('Applying existing model r3_reset_L1_targeted_15_10_0p067.csv')
+        linear_regression_filepath = './linear_regression_data/r3_reset_L1_targeted_15_10_0p067.csv'
         trained_coef = read_regression_coefficients(linear_regression_filepath, model_name)
         prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
 
@@ -462,7 +454,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     end = time.time()
 
     with open(scratch_filepath, 'a') as fh:
-        #fh.write("model_filepath, {}, ".format(model_filepath))
+        # fh.write("model_filepath, {}, ".format(model_filepath))
         fh.write("number of params, {}, ".format((params / 1e6)))
         fh.write("{}, ".format(model_name))
         fh.write("{}, ".format(pruning_method))
@@ -485,24 +477,18 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
         fh.write("execution time [s], {}, \n".format((end - start)))
 
-
     # write the result to a file
     with open(result_filepath, 'w') as fh:
         fh.write("{}".format(prob_trojan_in_model))
 
-    del acc_pruned_model_shift
-    del pruning_shift
     del model_orig
     del fns
-
     return prob_trojan_in_model
 
 
 ####################################################################################
-if __name__=='__main__':
-
+if __name__ == '__main__':
     entries = globals().copy()
-
 
     print('torch version: %s \n' % (torch.__version__))
 

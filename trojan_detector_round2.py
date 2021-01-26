@@ -197,10 +197,10 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
 
     #################################
     # TODO these are the parameters that must be configured
-    pruning_method = 'remove'  # remove or reset or trim
+    pruning_method = 'reset'  # remove or reset or trim
     sampling_method = 'targeted'  # random or targeted or uniform sampling
     ranking_method = 'L1'  # L1, L2, Linf, STDEV
-    num_samples = 5  # nS=5 or  10 or 15 or 25 was tested
+    num_samples = 15  # nS=5 or  10 or 15 or 25 was tested
     # set the number of images used
     num_images_used = 10  # nD=10,20,30,40 was tested
     print('pruning_method (PM):', pruning_method, ' sampling method (SM):', sampling_method, ' ranking method (RM):',
@@ -444,10 +444,11 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
 
     # round 2 - linear regression coefficients applied to the num_samples (signal measurement)
     # this function should be enabled if  the estimated multiple linear correlation coefficients should be applied
-    # if num_samples == 15:
-    #     linear_regression_filepath = './linear_regression_data/r2_reset_L1_targeted_15_10_0p07.csv'
-    #     trained_coef = read_regression_coefficients(linear_regression_filepath, model_name)
-    #     prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
+    if num_samples == 15 and 'reset' in pruning_method and 'L1' in ranking_method and 'targeted' in sampling_method:
+        print('Applying existing model r2_reset_L1_targeted_15_10_0p07.csv')
+        linear_regression_filepath = './linear_regression_data/r2_reset_L1_targeted_15_10_0p07.csv'
+        trained_coef = read_regression_coefficients(linear_regression_filepath, model_name)
+        prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
 
     # stop timing the execution
     end = time.time()

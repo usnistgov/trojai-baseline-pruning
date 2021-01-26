@@ -91,9 +91,13 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
     # init indices of accuracy and GT model labels in the input CSV files, the last one is for execution time
     column_idx_array = []
     is_header_present = False
-    if dataset_round == 2:
+    if dataset_round >= 2:
         is_header_present = False
-        if number_of_pruned_models == 25:
+        if number_of_pruned_models == 35:
+            # nS = 35
+            column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
+                                45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 78]
+        elif number_of_pruned_models == 25:
             # nS = 25
             column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
                                 45, 46, 47, 48, 68]
@@ -109,14 +113,19 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
             exit(-1)
 
     if dataset_round == 1:
-        if number_of_pruned_models == 25:
+        if number_of_pruned_models == 35:
+            # nS = 35
+            # run49,50,51
+            column_idx_array = [10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+                                41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 74]
+        elif number_of_pruned_models == 25:
             # nS = 25
             # run46,47,48
             column_idx_array = [10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
                                 41, 42, 43, 44, 64]
         elif number_of_pruned_models == 15:
             # nS = 15
-            # run41
+            # run41 -> up
             column_idx_array = [10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 54]
             # run23, 24, 25
             #column_idx_array = [5, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 53]
@@ -220,7 +229,16 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
         # X = df[my_input_var] This assignment did not work!!!
         # If you just want to use one variable for simple linear regression, then use X = df['Interest_Rate'] for example.Alternatively, you may add additional variables within the brackets
 
-        if number_of_pruned_models == 25:
+        if number_of_pruned_models == 35:
+            df = pd.DataFrame(acc_table,columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]','a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                    'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
+                                                 'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
+                                                 'a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]','gt_model_label'])
+            X = df[['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]', 'a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                    'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
+                                                 'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]','a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
+                                                 'a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]']]
+        elif number_of_pruned_models == 25:
             df = pd.DataFrame(acc_table,columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]','a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
                     'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
                                                  'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'gt_model_label'])
@@ -287,6 +305,11 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
                 predict_prob = regr.predict([[a[0], a[1], a[2], a[3], a[4],a[5], a[6], a[7], a[8], a[9],a[10],
                                             a[11], a[12], a[13], a[14],a[15], a[16], a[17], a[18], a[19],a[20],
                                             a[21], a[22], a[23], a[24] ]])
+            elif number_of_pruned_models == 35:
+                predict_prob = regr.predict([[a[0], a[1], a[2], a[3], a[4],a[5], a[6], a[7], a[8], a[9],a[10],
+                                            a[11], a[12], a[13], a[14],a[15], a[16], a[17], a[18], a[19],a[20],
+                                            a[21], a[22], a[23], a[24], a[25], a[26], a[27], a[28], a[29],a[30],
+                                            a[31], a[32], a[33], a[34] ]])
             else:
                 print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models)
                 continue
@@ -321,7 +344,15 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
 
         print('sum_fp:', sum_fp, ' sum_fn:', sum_fn)
         avg_cross_entropy_loss = crossEntropyLossSum/num_models
-        stdev_cross_entropy_loss = np.sqrt(crossEntropyLossSum2/num_models - avg_cross_entropy_loss*avg_cross_entropy_loss)
+        # print('DEBUG: crossEntropyLossSum2/num_models: ', crossEntropyLossSum2/num_models )
+        # print('DEBUG: avg_cross_entropy_loss^2: ', avg_cross_entropy_loss*avg_cross_entropy_loss)
+        val = crossEntropyLossSum2/num_models - avg_cross_entropy_loss*avg_cross_entropy_loss
+        # sanity check since these values can have rounding errors: example 9.999557570501278e-25 - 9.999557570501283e-25 < 0
+        if val < 0:
+            stdev_cross_entropy_loss = 0.0
+        else:
+            stdev_cross_entropy_loss = np.sqrt(val)
+
         avg_cross_entropy_loss = int(10000*avg_cross_entropy_loss)/10000
         stdev_cross_entropy_loss = int(10000*stdev_cross_entropy_loss)/10000
 
@@ -382,6 +413,6 @@ if __name__=='__main__':
         args.accuracies_dirpath, args.result_filepath))
     # --accuracies_dirpath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_LR --result_filepath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_r2\LR_results.csv
 
-    dataset_round = 2
-    number_of_pruned_models = 25
+    dataset_round = 1
+    number_of_pruned_models = 35
     batch_process_dir(args.accuracies_dirpath, args.result_filepath, dataset_round, number_of_pruned_models)

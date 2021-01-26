@@ -2,7 +2,7 @@
 
 ## Goal
 This code is for classifying convolutional neural network (CNN) models into those trained with Trojans (TwT) and those trained without Trojans (TwoT).
-It is based on Round 1 and Round 2 TrojAI Challenge datasets posted at [URL](https://pages.nist.gov/trojai/docs/data.html#).
+It is based on Rounds 1, 2, 3, and 4 TrojAI Challenge datasets posted at [URL](https://pages.nist.gov/trojai/docs/data.html#).
 
 ### Inputs
 Trained CNN models with metadata about presence or absence of Trojans (clean or poisoned model).
@@ -34,46 +34,66 @@ pip install -r requirements.txt
 
 Note: The file 'requirements.txt' defines the minimum installation requirements. The file was
 created on Windows OS, but the requirements extracted on Linux Ubuntu OS 
-have additional OS specific libraries. 
+have additional OS specific libraries. The key libraries are torch==1.5.0+cpu and torchvision==0.6.0+cpu.
 
 ## Execution
 The execution consists of three steps:
 
 1. extract accuracy measurements over all pruned model version
 from all available models by running 
-trojan_detector.py (Round 1) or trojan_detector_round2.py (Round 2)
+trojan_detector.py (Round 1), trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3), or 
+trojan_detector_round4.py (Round 4)
     * The six execution parameters are set in these main classes
     * This step includes estimating the CNN model architecture using 
-    model_classifier.py (Round 1) or model_classifier_round2.py (Round2) against
+    model_classifier.py (Round 1) or model_classifier_round2.py (Round 2, 3, and 4) against
     the reference architectures file sizes and graphs provided in reference_data folder
 2. estimate multiple linear regression coefficients from the extracted accuracy
-measurements and ground truth labels provided for Round 1 and 2 data sets by 
+measurements and ground truth labels provided for Round 1, 2, 3, and 4 data sets by 
 running linear_regression_fit.py
     * Example files are provided in linear_regression_data folder
 3. compute probability of a CNN model being trained with trojan by running 
-trojan_detector.py (Round 1) or trojan_detector_round2.py (Round 2) with 
-the estimated linear regression coefficients handled in linear_regression.py
+trojan_detector.py (Round 1) or trojan_detector_roundX.py (where X stands for 
+Round 2, 3 or 4) with the estimated linear regression coefficients handled in linear_regression.py
     * The final probability value is saved in a file defined by --result_filepath argument
 
-The main classes for trojan detection are in trojan_detector.py (Round 1) and 
-trojan_detector_round2.py (Round 2), which follow the arguments required 
+The main classes for trojan detection are in trojan_detector.py (Round 1), 
+ trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3), and
+trojan_detector_round4.py (Round 4). They follow the arguments required 
 by the TrojAI challenge. 
 They are designed to take one trained AI model and output the probability of the CNN model being trained with trojan.
 
 **Example:**
 
 ```sh
+python3 ./trojan_detector.py --model_filepath ./trojai/datasets/round1/id-00000001/model.pt  --result_filepath ./trojai/datasets/round1/scratch/test_python_output.txt --scratch_dirpath .trojai/datasets/round1/scratch --examples_dirpath ./trojai/datasets/round1/id-00000001/example_data
+```
+
+```sh
 python3 ./trojan_detector_round2.py --model_filepath ./trojai/datasets/round2/id-00000001/model.pt  --result_filepath ./trojai/datasets/round2/scratch_r2/test_python_output.txt --scratch_dirpath .trojai/datasets/round2/scratch_r2 --examples_dirpath ./trojai/datasets/round2/id-00000001/example_data
 ```
 
+```sh
+python3 ./trojan_detector_round3.py --model_filepath ./trojai/datasets/round3/id-00000001/model.pt  --result_filepath ./trojai/datasets/round3/scratch_r3/test_python_output.txt --scratch_dirpath .trojai/datasets/round3/scratch_r3 --examples_dirpath ./trojai/datasets/round3/id-00000001/clean_example_data
+```
+
+```sh
+python3 ./trojan_detector_round4.py --model_filepath ./trojai/datasets/round4/id-00000001/model.pt  --result_filepath ./trojai/datasets/round4/scratch_r4/test_python_output.txt --scratch_dirpath .trojai/datasets/round4/scratch_r4 --examples_dirpath ./trojai/datasets/round4/id-00000001/clean_example_data
+```
+
 One can execute the trojan detection on a folder containing many AI models with example images
- by using the classes my_folder.py (Round 1) and my_folder_round2.py (Round 2). 
+ by using the classes my_folder.py (Round 1) and my_folder_round2.py (Round 2). It is recommended 
+ to configure and execute shell scripts evaluate_models.sh (Round 1) and evaluate_models_roundX.sh (Rounds 2, 3, and 4)
+ when processing a large number of models at once. 
  The execution assumes certain organization of files in folders.
  
 **Example:** 
 
 ```sh
 python3 ./my_folders_round2.py --model_dirpath ./trojai/datasets/round2/round2-train-dataset/  --result_filepath ./trojai/datasets/round2/scratch_r2/output.txt --scratch_dirpath ./trojai/datasets/round2/scratch_r2/ 
+```
+
+```sh
+source ./evaluate_models_round2.sh  
 ```
 
 Parts of the code can be reused for classifying AI models according to their architecture 
@@ -117,6 +137,6 @@ DenseNet models are pruned incorrectly since the forward pass (accuracy evaluati
 is suspected to have a memory leak. The code for capturing the RAM before and after is 
 commented out in the class trim_prune.py. The memory leak is a problem when running
 the code on 1000+ models, and therefore it is recommended to use the shell scripts
-(evaluate_models.sh and evaluate_models_round2.sh) when processing thousands of models.
+(evaluate_models.sh and evaluate_models_roundX.sh) when processing thousands of models.
 
 
