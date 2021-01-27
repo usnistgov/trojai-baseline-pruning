@@ -8,8 +8,15 @@ From: nvidia/cuda:10.0-devel
     ./trojan_detector.py /
     ./model_classifier.py /
     ./my_dataset.py /
-    ./my_folders.py /
+    ./linear_regression_fit.py /
+    ./linear_regression.py /
+    ./reset_prune.py /
+    ./trim_prune.py /
+    ./remove_prune.py /
+    ./graph_classifier_round2.py /
     ./torch_pruning /
+    ./linear_regression_data /
+    ./reference_data /
 
 %post -c /bin/bash
     #Now install everything
