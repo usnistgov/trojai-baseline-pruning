@@ -200,7 +200,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     pruning_method = 'reset'  # remove or reset or trim
     sampling_method = 'targeted'  # random or targeted or uniform sampling
     ranking_method = 'L1'  # L1, L2, Linf, STDEV
-    num_samples = 25  # nS=5 or  10 or 15 or 25 was tested
+    num_samples = 15  # nS=5 or  10 or 15 or 25 was tested
     # set the number of images used
     num_images_used = 10  # nD=10,20,30,40 was tested
     print('pruning_method (PM):', pruning_method, ' sampling method (SM):', sampling_method, ' ranking method (RM):',

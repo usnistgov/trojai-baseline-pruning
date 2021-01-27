@@ -27,7 +27,7 @@ From: pytorch/pytorch:latest
      Version 1.1.0
 
 %runscript
-    exec python3 /trojan_detector_round2.py "$@"
+    exec python3 /trojan_detector_round4.py "$@"
 
 
 
