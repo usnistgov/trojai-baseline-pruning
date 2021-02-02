@@ -43,8 +43,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 def eval(model, test_loader, result_filepath, model_name):
     correct = 0.0
     total = 0.0
-    device = "cpu"  # = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+
+    if torch.cuda.is_available():
+        use_cuda = True
+        model.cuda()
+
     model.eval()
     with torch.no_grad():
         # for i, (img, target) in enumerate(test_loader):
@@ -56,7 +59,11 @@ def eval(model, test_loader, result_filepath, model_name):
             img = skimage.io.imread(test_loader.dataset.list_IDs[i])
             img = preprocess_round2(img, model_name)
             # convert image to a gpu tensor
-            batch_data = torch.FloatTensor(img, device=device)
+
+            if use_cuda:
+                batch_data = torch.FloatTensor(img).cuda(non_blocking=True)
+            else:
+                batch_data = torch.FloatTensor(img)
 
             # batch_data = batch_data.to(device)
             out = model(batch_data)
@@ -363,10 +370,23 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     acc_pruned_model_shift = []
     pruning_shift = []
 
+    timings = dict()
+    copy_times = list()
+    prune_times = list()
+    eval_times = list()
+
+    loop_start = time.time()
+
     for sample_shift in range(num_samples):
+        copy_start = time.time()
         model = copy.deepcopy(model_orig)
+        copy_time = time.time() - copy_start
+
+        copy_times.append(copy_time)
+
 
         print('INFO: reset- pruning for sample_shift:', sample_shift)
+        prune_start = time.time()
         try:
             if 'remove' in pruning_method:
                 prune_model(model, model_name, output_transform, sample_shift, sampling_method, ranking_method,
@@ -386,11 +406,27 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
                 fh.write("\n")
             raise
 
+        prune_time = time.time() - prune_start
+        prune_times.append(prune_time)
+
+        eval_start = time.time()
         acc_pruned_model = eval(model, test_loader, result_filepath, model_name)
+        eval_time = time.time() - eval_start
+        eval_times.append(eval_time)
         print('model: ', model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
         acc_pruned_model_shift.append(acc_pruned_model)
         pruning_shift.append(sample_shift)
         del model
+
+        print('Timing info: copy: {}, prune: {}, eval: {}'.format(copy_time, prune_time, eval_time))
+
+    loop_time = time.time() - loop_start
+    timings['loop'] = loop_time
+    timings['copy'] = copy_times
+    timings['prune'] = prune_times
+    timings['eval'] = eval_times
+
+    print('Loop timing: {}'.format(loop_time))
 
     # compute simple stats of the measured signal (vector of accuracy values over a set of pruned models)
     mean_acc_pruned_model = statistics.mean(acc_pruned_model_shift)
@@ -468,6 +504,12 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         fh.write("slope, {:.4f}, ".format(slope))
         fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
         fh.write("execution time [s], {}, \n".format((end - start)))
+
+    timings_file = scratch_filepath + '_timings.txt'
+    with open(timings_file, 'a') as fh:
+        for key in timings.keys():
+            fh.write('{}: {}\n'.format(key, timings[key]))
+        fh.write('------------------------------------\n')
 
     # write the result to a file
     with open(result_filepath, 'w') as fh:

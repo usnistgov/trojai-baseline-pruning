@@ -43,8 +43,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 def eval(model, test_loader, result_filepath, model_name):
     correct = 0.0
     total = 0.0
-    device = "cpu"  # = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+
+    if torch.cuda.is_available():
+        use_cuda = True
+        model.cuda()
+
     model.eval()
     with torch.no_grad():
         # for i, (img, target) in enumerate(test_loader):
@@ -56,7 +59,11 @@ def eval(model, test_loader, result_filepath, model_name):
             img = skimage.io.imread(test_loader.dataset.list_IDs[i])
             img = preprocess_round2(img, model_name)
             # convert image to a gpu tensor
-            batch_data = torch.FloatTensor(img, device=device)
+
+            if use_cuda:
+                batch_data = torch.FloatTensor(img).cuda(non_blocking=True)
+            else:
+                batch_data = torch.FloatTensor(img)
 
             # batch_data = batch_data.to(device)
             out = model(batch_data)
