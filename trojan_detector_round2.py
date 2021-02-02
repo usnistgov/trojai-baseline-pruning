@@ -47,6 +47,8 @@ def eval(model, test_loader, result_filepath, model_name):
     if torch.cuda.is_available():
         use_cuda = True
         model.cuda()
+    else:
+        use_cuda = False
 
     model.eval()
     with torch.no_grad():
