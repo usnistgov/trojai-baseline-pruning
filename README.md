@@ -4,6 +4,18 @@
 This code is for classifying convolutional neural network (CNN) models into those trained with Trojans (TwT) and those trained without Trojans (TwoT).
 It is based on Rounds 1, 2, 3, and 4 TrojAI Challenge datasets posted at [URL](https://pages.nist.gov/trojai/docs/data.html#).
 
+## Method description
+```
+@misc{bajcsy2021baseline,
+      title={Baseline Pruning-Based Approach to Trojan Detection in Neural Networks}, 
+      author={Peter Bajcsy and Michael Majurski},
+      year={2021},
+      eprint={2101.12016},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR}
+}
+```
+
 ### Inputs
 Trained CNN models with metadata about presence or absence of Trojans (clean or poisoned model).
 
