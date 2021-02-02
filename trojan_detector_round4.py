@@ -150,7 +150,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     print('example_img_format = {}'.format(example_img_format))
 
     # start timer
-    start = time.time()
+    start = time.perf_counter()
     #######################################
     # adjust to the hardware platform
     mydevice = "cpu"  # torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -375,18 +375,18 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     prune_times = list()
     eval_times = list()
 
-    loop_start = time.time()
+    loop_start = time.perf_counter()
 
     for sample_shift in range(num_samples):
-        copy_start = time.time()
+        copy_start = time.perf_counter()
         model = copy.deepcopy(model_orig)
-        copy_time = time.time() - copy_start
+        copy_time = time.perf_counter() - copy_start
 
         copy_times.append(copy_time)
 
 
         print('INFO: reset- pruning for sample_shift:', sample_shift)
-        prune_start = time.time()
+        prune_start = time.perf_counter()
         try:
             if 'remove' in pruning_method:
                 prune_model(model, model_name, output_transform, sample_shift, sampling_method, ranking_method,
@@ -406,12 +406,12 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
                 fh.write("\n")
             raise
 
-        prune_time = time.time() - prune_start
+        prune_time = time.perf_counter() - prune_start
         prune_times.append(prune_time)
 
-        eval_start = time.time()
+        eval_start = time.perf_counter()
         acc_pruned_model = eval(model, test_loader, result_filepath, model_name)
-        eval_time = time.time() - eval_start
+        eval_time = time.perf_counter() - eval_start
         eval_times.append(eval_time)
         print('model: ', model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
         acc_pruned_model_shift.append(acc_pruned_model)
@@ -420,7 +420,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
 
         print('Timing info: copy: {}, prune: {}, eval: {}'.format(copy_time, prune_time, eval_time))
 
-    loop_time = time.time() - loop_start
+    loop_time = time.perf_counter() - loop_start
     timings['loop'] = loop_time
     timings['copy'] = copy_times
     timings['prune'] = prune_times
@@ -479,7 +479,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
 
     # stop timing the execution
-    end = time.time()
+    end = time.perf_counter()
 
     with open(scratch_filepath, 'a') as fh:
         # fh.write("model_filepath, {}, ".format(model_filepath))

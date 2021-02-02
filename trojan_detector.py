@@ -205,7 +205,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     #####################
 
     # start timer
-    start = time.time()
+    start = time.perf_counter()
     # read the ground truth label
     model_dirpath = os.path.dirname(model_filepath)
     gt_model_label_filepath = os.path.join(model_dirpath, 'ground_truth.csv')
@@ -459,7 +459,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
 
     # stop timing the execution
-    end = time.time()
+    end = time.perf_counter()
 
     with open(scratch_filepath, 'a') as fh:
         #fh.write("model_filepath, {}, ".format(model_filepath))

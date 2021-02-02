@@ -150,7 +150,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     print('example_img_format = {}'.format(example_img_format))
 
     # start timer
-    start = time.time()
+    start = time.perf_counter()
     #######################################
     # adjust to the hardware platform
     mydevice = "cpu"  # torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -458,7 +458,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
 
     # stop timing the execution
-    end = time.time()
+    end = time.perf_counter()
 
     with open(scratch_filepath, 'a') as fh:
         # fh.write("model_filepath, {}, ".format(model_filepath))
