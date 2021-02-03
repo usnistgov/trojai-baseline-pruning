@@ -420,7 +420,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         prune_times.append(prune_time)
 
         eval_start = time.perf_counter()
-        acc_pruned_model = eval(model, test_loader, result_filepath, model_name, use_cuda=True)
+        acc_pruned_model = eval(model, test_loader, result_filepath, model_name, use_cuda)
         eval_time = time.perf_counter() - eval_start
         eval_times.append(eval_time)
         print('model: ', model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
