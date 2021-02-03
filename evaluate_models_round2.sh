@@ -3,15 +3,14 @@
 #CONTAINER_NAME=$1
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
-
-MODEL_DIR=/home/pnb/raid1/trojai/datasets/round2/round2-train-dataset
-
-
+MODEL_DIR=/home/jameshobbs/datasets-round2
 #ACTIVE_DIR=/home/trojai/active
 
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
-RESULT_DIR=/home/pnb/raid1/trojai/datasets/round2/scratch_r2
-SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round2/scratch_r2
+RESULT_DIR=/home/jameshobbs/round2-results
+SCRATCH_DIR=/home/jameshobbs/round2-scratch_gpu_final
+
+DISABLE_CUDA=False
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
@@ -32,7 +31,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_round2.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/example_data
+			python ./trojan_detector_round2.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/example_data --disable_cuda $DISABLE_CUDA
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

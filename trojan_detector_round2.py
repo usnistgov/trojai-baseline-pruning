@@ -40,11 +40,11 @@ This code is an adjusted version of the trojan detector for the Round 1 of the T
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
-def eval(model, test_loader, result_filepath, model_name):
+def eval(model, test_loader, result_filepath, model_name, use_cuda=True):
     correct = 0.0
     total = 0.0
 
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and use_cuda:
         use_cuda = True
         model.cuda()
     else:
@@ -144,7 +144,7 @@ def preprocess_round2(img, model_name):
     return img
 
 
-def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_dirpath, example_img_format='png'):
+def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_dirpath, example_img_format='png', use_cuda=True):
     print('model_filepath = {}'.format(model_filepath))
     print('result_fileRoot = {}'.format(result_filepath))
     print('scratch_dirpath = {}'.format(scratch_dirpath))
@@ -372,8 +372,19 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     acc_pruned_model_shift = []
     pruning_shift = []
 
+    timings = dict()
+    copy_times = list()
+    prune_times = list()
+    eval_times = list()
+
+    loop_start = time.perf_counter()
+
     for sample_shift in range(num_samples):
+        copy_start = time.perf_counter()
         model = copy.deepcopy(model_orig)
+        copy_time = time.perf_counter() - copy_start
+
+        copy_times.append(copy_time)
         # if sample_shift > 0:
         #     # load a model
         #     model = torch.load(model_filepath, map_location=mydevice)
@@ -384,6 +395,8 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         # #print('before pruning:', model)
 
         print('INFO: reset- pruning for sample_shift:', sample_shift)
+        prune_start = time.perf_counter()
+
         try:
             if 'remove' in pruning_method:
                 prune_model(model, model_name, output_transform, sample_shift, sampling_method, ranking_method,
@@ -403,11 +416,23 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
                 fh.write("\n")
             raise
 
-        acc_pruned_model = eval(model, test_loader, result_filepath, model_name)
+        prune_time = time.perf_counter() - prune_start
+        prune_times.append(prune_time)
+
+        eval_start = time.perf_counter()
+        acc_pruned_model = eval(model, test_loader, result_filepath, model_name, use_cuda=True)
+        eval_time = time.perf_counter() - eval_start
+        eval_times.append(eval_time)
         print('model: ', model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
         acc_pruned_model_shift.append(acc_pruned_model)
         pruning_shift.append(sample_shift)
         del model
+
+    loop_time = time.perf_counter() - loop_start
+    timings['loop'] = loop_time
+    timings['avg copy'] = statistics.mean(copy_times)
+    timings['avg prune'] = statistics.mean(prune_times)
+    timings['avg eval'] = statistics.mean(eval_times)
 
     # compute simple stats of the measured signal (vector of accuracy values over a set of pruned models)
     mean_acc_pruned_model = statistics.mean(acc_pruned_model_shift)
@@ -484,7 +509,10 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         fh.write("num_max2min_ordered, {}, ".format(num_max2min_ordered))
         fh.write("slope, {:.4f}, ".format(slope))
         fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
-        fh.write("execution time [s], {}, \n".format((end - start)))
+        fh.write("execution time [s], {},".format((end - start)))
+        for key in timings.keys():
+            fh.write('{} [s], {},'.format(key, timings[key]))
+        fh.write('\n')
 
     # write the result to a file
     with open(result_filepath, 'w') as fh:
@@ -514,9 +542,16 @@ if __name__ == '__main__':
     parser.add_argument('--examples_dirpath', type=str,
                         help='File path to the folder of examples which might be useful for determining whether a model is poisoned.',
                         required=False)
+    parser.add_argument('--disable_cuda', type=bool,
+                        help='Disables using CUDA (Default will try to use CUDA if it is available)',
+                        required=False,
+                        default=False)
 
     args = parser.parse_args()
+
+    use_cuda = not args.disable_cuda
+
     print('args %s \n %s \n %s \n %s \n' % (
         args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath))
 
-    trojan_detector(args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath)
+    trojan_detector(args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath, use_cuda=use_cuda)

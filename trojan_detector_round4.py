@@ -424,9 +424,10 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
 
     loop_time = time.perf_counter() - loop_start
     timings['loop'] = loop_time
-    timings['copy'] = copy_times
-    timings['prune'] = prune_times
-    timings['eval'] = eval_times
+    timings['avg copy'] = statistics.mean(copy_times)
+    timings['avg prune'] = statistics.mean(prune_times)
+    timings['avg eval'] = statistics.mean(eval_times)
+
 
     print('Loop timing: {}'.format(loop_time))
 
@@ -506,12 +507,10 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
         fh.write("slope, {:.4f}, ".format(slope))
         fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
         fh.write("execution time [s], {}, \n".format((end - start)))
-
-    timings_file = scratch_filepath + '_timings.txt'
-    with open(timings_file, 'a') as fh:
         for key in timings.keys():
-            fh.write('{}: {}\n'.format(key, timings[key]))
-        fh.write('------------------------------------\n')
+            fh.write('{} [s], {},'.format(key, timings[key]))
+        fh.write('\n')
+
 
     # write the result to a file
     with open(result_filepath, 'w') as fh:
