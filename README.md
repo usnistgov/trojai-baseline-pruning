@@ -151,4 +151,7 @@ commented out in the class trim_prune.py. The memory leak is a problem when runn
 the code on 1000+ models, and therefore it is recommended to use the shell scripts
 (evaluate_models.sh and evaluate_models_roundX.sh) when processing thousands of models.
 
-
+<!-- ACKNOWLEDGEMENTS -->
+## Acknowledgement
+The funding for the work was provided by the IARPA TrojAI project: IARPA-
+444 20001-D2020-2007180011.

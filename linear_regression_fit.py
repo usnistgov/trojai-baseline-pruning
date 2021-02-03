@@ -104,6 +104,9 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
         elif number_of_pruned_models == 15:
             # nS = 15
             column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 58]
+        elif number_of_pruned_models == 10:
+            # nS = 10
+            column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 53]
         elif number_of_pruned_models == 5:
             # nS = 5
             column_idx_array = [10, 24, 25, 26, 27, 28, 48] # for any run larger than 13
@@ -413,6 +416,6 @@ if __name__=='__main__':
         args.accuracies_dirpath, args.result_filepath))
     # --accuracies_dirpath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_LR --result_filepath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_r2\LR_results.csv
 
-    dataset_round = 1
-    number_of_pruned_models = 35
+    dataset_round = 3
+    number_of_pruned_models = 15
     batch_process_dir(args.accuracies_dirpath, args.result_filepath, dataset_round, number_of_pruned_models)
