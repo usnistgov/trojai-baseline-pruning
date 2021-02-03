@@ -40,15 +40,15 @@ This code is an adjusted version of the trojan detector for the Round 1 of the T
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
-def eval(model, test_loader, result_filepath, model_name, use_cuda=True):
+def eval(model, test_loader, result_filepath, model_name, use_cuda):
     correct = 0.0
     total = 0.0
 
     if torch.cuda.is_available() and use_cuda:
-        use_cuda = True
+        cuda_copy = True
         model.cuda()
     else:
-        use_cuda = False
+        cuda_copy = False
 
     model.eval()
     with torch.no_grad():
@@ -62,7 +62,7 @@ def eval(model, test_loader, result_filepath, model_name, use_cuda=True):
             img = preprocess_round2(img, model_name)
             # convert image to a gpu tensor
 
-            if use_cuda:
+            if cuda_copy:
                 batch_data = torch.FloatTensor(img).cuda(non_blocking=True)
             else:
                 batch_data = torch.FloatTensor(img)
@@ -544,16 +544,14 @@ if __name__ == '__main__':
     parser.add_argument('--examples_dirpath', type=str,
                         help='File path to the folder of examples which might be useful for determining whether a model is poisoned.',
                         required=False)
-    parser.add_argument('--disable_cuda', type=bool,
-                        help='Disables using CUDA (Default will try to use CUDA if it is available)',
+    parser.add_argument('--use_cuda', type=bool,
+                        help='Specifies to use CUDA or not (Default will try to use CUDA if it is available)',
                         required=False,
-                        default=False)
+                        default=True)
 
     args = parser.parse_args()
 
-    use_cuda = not args.disable_cuda
+    print('args %s \n %s \n %s \n %s \n %s\n' % (
+        args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath, args.use_cuda))
 
-    print('args %s \n %s \n %s \n %s \n' % (
-        args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath))
-
-    trojan_detector(args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath, use_cuda=use_cuda)
+    trojan_detector(args.model_filepath, args.result_filepath, args.scratch_dirpath, args.examples_dirpath, use_cuda=args.use_cuda)
