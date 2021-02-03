@@ -426,6 +426,8 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     timings['loop'] = loop_time
     timings['avg copy'] = statistics.mean(copy_times)
     timings['avg prune'] = statistics.mean(prune_times)
+    timings['max eval'] = statistics.max(prune_times)
+    timings['min eval'] = statistics.min(prune_times)
     timings['avg eval'] = statistics.mean(eval_times)
 
 
