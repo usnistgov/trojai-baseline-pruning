@@ -10,6 +10,7 @@ MODEL_DIR=/home/jameshobbs/datasets-round2
 RESULT_DIR=/home/jameshobbs/round2-results
 SCRATCH_DIR=/home/jameshobbs/round2-scratch_gpu_final
 
+#USE_CUDA=""
 USE_CUDA=True
 
 #mkdir -p $RESULT_DIR
@@ -31,7 +32,11 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_round2.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/example_data --use_cuda $USE_CUDA
+      if [ -n "$USE_CUDA" ]; then
+			  python ./trojan_detector_round2.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/example_data
+			else
+			  python ./trojan_detector_round2.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/example_data --no_cuda
+			fi
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

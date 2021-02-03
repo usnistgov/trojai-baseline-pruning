@@ -544,10 +544,10 @@ if __name__ == '__main__':
     parser.add_argument('--examples_dirpath', type=str,
                         help='File path to the folder of examples which might be useful for determining whether a model is poisoned.',
                         required=False)
-    parser.add_argument('--use_cuda', type=bool,
-                        help='Specifies to use CUDA or not (Default will try to use CUDA if it is available)',
-                        required=False,
-                        default=True)
+    parser.add_argument('--no_cuda',
+                        help='Specifies to disable using CUDA',
+                        dest='use_cuda', action='store_false')
+    parser.set_defaults(use_cuda=True)
 
     args = parser.parse_args()
 
