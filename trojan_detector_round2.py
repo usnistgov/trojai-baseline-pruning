@@ -432,8 +432,8 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     timings['loop'] = loop_time
     timings['avg copy'] = statistics.mean(copy_times)
     timings['avg prune'] = statistics.mean(prune_times)
-    timings['max eval'] = max(prune_times)
-    timings['min eval'] = min(prune_times)
+    timings['max eval'] = max(eval_times)
+    timings['min eval'] = min(eval_times)
     timings['avg eval'] = statistics.mean(eval_times)
 
     # compute simple stats of the measured signal (vector of accuracy values over a set of pruned models)
