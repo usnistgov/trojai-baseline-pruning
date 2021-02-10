@@ -138,10 +138,15 @@ class TrojanDetector:
         self.example_filenames = self._configure_example_filenames()
         self.sampling_probability = self._configure_prune_sampling_probability()
 
+        if os.path.isfile(self.linear_regression_filepath):
+            self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_name)
+        else:
+            self.trained_coef = None
+
+    # Updates trojan detection parameters based on optimal configuration CSV. This overrides values taken from command-line.
     def update_configuration_from_optimal_configuration_csv_filepath(self, optimal_configuration_csv_filepath):
-        print('Parsing optimal configuration {}'.format(optimal_configuration_csv_filepath))
         if os.path.isfile(optimal_configuration_csv_filepath):
-            print('isfile')
+            coef = [-1]
             with open(optimal_configuration_csv_filepath) as csvfile:
                 readCSV = csv.reader(csvfile, delimiter=',')
 
@@ -157,10 +162,60 @@ class TrojanDetector:
                 for row in readCSV:
                     # search header for indices
                     if row_index == 0:
+                        col_index = 0
+                        flag = True
+                        start = end = -1
+
                         for elem in row:
                             elem = elem.strip().lower()
-                            print('element: {}'.format(elem))
+                            if 'architecture' in elem:
+                                architecture_name_index = col_index
+                            if 'number of eval images' in elem:
+                                num_images_used_index = col_index
+                            if 'number of samples' in elem:
+                                num_samples_index = col_index
+                            if 'pruning method' in elem:
+                                pruning_method_index = col_index
+                            if 'ranking method' in elem:
+                                ranking_method_index = col_index
+                            if 'sampling method' in elem:
+                                sampling_method_index = col_index
+                            if 'pruning probability' in elem:
+                                pruning_probability_index = col_index
+
+                            # parse the header to determine start and end of the coefficients
+                            if elem.startswith('b') and len(elem) < 4:  # support for nS<99
+                                if flag:
+                                    start = col_index
+                                    flag = False
+                                else:
+                                    end = col_index
+
+                            col_index = col_index + 1
+                        coef = [-1] * (end + 1 - start)
+                    else:
+                        if self.model_name == row[architecture_name_index]:
+                            print('Found model name: {}'.format(self.model_name))
+                            self.num_images_used = int(row[num_images_used_index])
+                            self.num_samples = int(row[num_samples_index])
+                            self.pruning_method = row[pruning_method_index]
+                            self.ranking_method = row[ranking_method_index]
+                            self.sampling_method = row[sampling_method_index]
+                            self.sampling_probability = float(row[pruning_probability_index])
+
+                            for col_index in range(start, end + 1):
+                                if row[col_index] is not '':
+                                    coef[col_index - start] = float(row[col_index])
+
                     row_index = row_index + 1
+                self.trained_coef = [value for value in coef if value != -1]
+
+                print('Found coef: {}'.format(self.trained_coef))
+                print('pruning_method (PM):', self.pruning_method, ' sampling method (SM):', self.sampling_method,
+                      ' ranking method (RM):',
+                      self.ranking_method)
+                print('num_samples (nS):', self.num_samples, ' num_images_used (nD):', self.num_images_used)
+                print('Sampling probability: {}'.format(self.sampling_probability))
 
     # The function will gather the image file names from the examples directory, that are available for each model
     def _configure_example_filenames(self):
@@ -427,11 +482,8 @@ class TrojanDetector:
 
         # round 2 - linear regression coefficients applied to the num_samples (signal measurement)
         # this function should be enabled if  the estimated multiple linear correlation coefficients should be applied
-        # TODO: Is this okay to just check for the regression file...
- #       if self.num_samples == 15 and 'reset' in self.pruning_method and 'L1' in self.ranking_method and 'targeted' in self.sampling_method:
-        if os.path.isfile(self.linear_regression_filepath):
-            trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_name)
-            prob_trojan_in_model = linear_regression_prediction(trained_coef, acc_pruned_model_shift)
+        if self.trained_coef is not None:
+            prob_trojan_in_model = linear_regression_prediction(self.trained_coef, acc_pruned_model_shift)
 
         # stop timing the execution
         execution_time_end = time.perf_counter()
