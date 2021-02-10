@@ -1,10 +1,9 @@
-
 """
 Disclaimer
 This software was developed by employees of the National Institute of Standards and Technology (NIST), an agency of the Federal Government and is being made available as a public service. Pursuant to title 17 United States Code Section 105, works of NIST employees are not subject to copyright protection in the United States.  This software may be subject to foreign copyright.  Permission in the United States and in foreign countries, to the extent that NIST may hold copyright, to use, copy, modify, create derivative works, and distribute this software and its documentation without fee is hereby granted on a non-exclusive basis, provided that this notice and disclaimer of warranty appears in all copies.
 THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT ANY WARRANTY OF ANY KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, ANY WARRANTY THAT THE SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND FREEDOM FROM INFRINGEMENT, AND ANY WARRANTY THAT THE DOCUMENTATION WILL CONFORM TO THE SOFTWARE, OR ANY WARRANTY THAT THE SOFTWARE WILL BE ERROR FREE.  IN NO EVENT SHALL NIST BE LIABLE FOR ANY DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES, ARISING OUT OF, RESULTING FROM, OR IN ANY WAY CONNECTED WITH THIS SOFTWARE, WHETHER OR NOT BASED UPON WARRANTY, CONTRACT, TORT, OR OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED BY PERSONS OR PROPERTY OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR SERVICES PROVIDED HEREUNDER.
 """
-__author__ = "Peter Bajcsy"
+__author__ = "Tim Blattner"
 __copyright__ = "Copyright 2020, The IARPA funded TrojAI project"
 __credits__ = ["Michael Majurski", "Tim Blattner", "Derek Juba", "Walid Keyrouz"]
 __license__ = "GPL"
@@ -13,51 +12,47 @@ __maintainer__ = "Peter Bajcsy"
 __email__ = "peter.bajcsy@nist.gov"
 __status__ = "Research"
 
+import copy
+import statistics
 import torch
+import torch.nn as nn
+import random
+import argparse
+import os, sys
+import skimage.io
+import numpy as np
+import torchvision
+from torchvision import transforms
+import csv
+import time
+from trojan_detector import TrojanDetector
+
+from linear_regression import read_regression_coefficients, linear_regression_prediction
+from model_classifier_round2 import model_classifier
+# from my_dataset import my_dataset
+from extended_dataset import extended_dataset
+from remove_prune import prune_model
+from reset_prune import reset_prune_model
+from trim_prune import trim_model
 
 """
-This class supports creating datasets in PyTorch
-The code was adopted from https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel
+This class is designed for detecting trojans in TrojAI Round 2 Challenge datasets
+see https://pages.nist.gov/trojai/docs/data.html#round-2
+This code is an adjusted version of the trojan detector for the Round 1 of the TrojAI challenge
 """
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-class my_dataset(torch.utils.data.Dataset):
-  'Characterizes a dataset for PyTorch'
-  #def __init__(self, list_IDs, labels):
-  def __init__(self, list_filenames):
+####################################################################################
+if __name__ == '__main__':
+    entries = globals().copy()
 
-      labels = []
-      for fn in list_filenames:
-          #print('processing image:', fn)
-          # extract the label from the file name
-          # example file name: class_0_example_1.png
-          if 'class_' in fn:
-              start = fn.rfind('class_') + 6
-              end = fn.rfind('_example', start)
-              image_class = int(fn[start:end])
-          else:
-              print('ERROR: could not parse the image label from the image file name')
-              image_class = 0
+    print('torch version: %s \n' % (torch.__version__))
 
-          #print('image_class:', image_class)
-          labels.append(image_class)
+    transform = None
+        # transforms.Compose([
+        # transforms.ToPILImage(),
+        # transforms.CenterCrop(224),
+        # transforms.ToTensor()])
 
-      'Initialization'
-      self.labels = labels
-      self.list_IDs = list_filenames
-
-  def __len__(self):
-        'Denotes the total number of samples'
-        return len(self.list_IDs)
-
-  def __getitem__(self, index):
-        'Generates one sample of data'
-        # Select sample
-        ID = self.list_IDs[index]
-
-        # Load data and get label
-        # X = torch.load('data/' + ID + '.pt')
-        # y = self.labels[ID]
-        X = torch.load(ID)
-        y = self.labels[ID]
-
-        return X, y
+    trojan_detector = TrojanDetector.processParameters(transform, default_config_file='config_files/round2.config')
+    trojan_detector.prune_model()
