@@ -138,6 +138,31 @@ class TrojanDetector:
         self.example_filenames = self._configure_example_filenames()
         self.sampling_probability = self._configure_prune_sampling_probability()
 
+    def update_configuration_from_optimal_configuration_csv_filepath(self, optimal_configuration_csv_filepath):
+        print('Parsing optimal configuration {}'.format(optimal_configuration_csv_filepath))
+        if os.path.isfile(optimal_configuration_csv_filepath):
+            print('isfile')
+            with open(optimal_configuration_csv_filepath) as csvfile:
+                readCSV = csv.reader(csvfile, delimiter=',')
+
+                architecture_name_index = -1
+                num_images_used_index = -1
+                num_samples_index = -1
+                pruning_method_index = -1
+                ranking_method_index = -1
+                sampling_method_index = -1
+                pruning_probability_index = -1
+                row_index = 0
+
+                for row in readCSV:
+                    # search header for indices
+                    if row_index == 0:
+                        for elem in row:
+                            elem = elem.strip().lower()
+                            print('element: {}'.format(elem))
+                    row_index = row_index + 1
+
+    # The function will gather the image file names from the examples directory, that are available for each model
     def _configure_example_filenames(self):
         self.example_filenames = [os.path.join(self.examples_dirpath, fn) for fn in os.listdir(self.examples_dirpath) if
                fn.endswith(self.example_img_format)]
@@ -520,11 +545,19 @@ class TrojanDetector:
         parser.add_argument('--no_cuda',
                             help='Specifies to disable using CUDA',
                             dest='use_cuda', action='store_false')
+        parser.add_argument('--optimal_configuration_csv_filepath',
+                           help='Specifies an optimal configuration CSV file, '
+                                'this file overrides the following configuration settings: '
+                                'number of eval images, number of samples, pruning method, '
+                                'ranking method, sampling method, and the linear regression filepath',
+                           default=None)
         parser.set_defaults(use_cuda=True)
+
+
 
         args = parser.parse_args()
         parser.print_values()
-        return TrojanDetector(args.model_filepath, args.result_filepath,
+        trojanDetector = TrojanDetector(args.model_filepath, args.result_filepath,
                               args.scratch_dirpath, args.examples_dirpath,
                               args.pruning_method, args.sampling_method,
                               args.ranking_method, args.num_samples,
@@ -536,3 +569,8 @@ class TrojanDetector:
                               args.prob_trojan_in_model_max_threshold, 'png', args.use_cuda,
                               args.num_duplicate_data_iterations, args.batch_size, args.num_workers,
                               transform)
+
+        if args.optimal_configuration_csv_filepath is not None:
+            trojanDetector.update_configuration_from_optimal_configuration_csv_filepath(args.optimal_configuration_csv_filepath)
+
+        return trojanDetector
