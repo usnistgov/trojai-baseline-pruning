@@ -262,7 +262,7 @@ class TrojanDetector:
                 sampling_probability = np.ceil(self.remove_pruned_divisor / self.num_samples) / self.remove_pruned_divisor
 
             # there is a random failure of densenet models for sampling_probability larger than 0.02
-            if 'densenet' in self.model_name and self.sampling_probability > 0.02:
+            if 'densenet' in self.model_name and sampling_probability > 0.02:
                 # this value is computed as if for num_samples = 50 --> sampling_probability = 0.02
                 sampling_probability = 0.02
 
