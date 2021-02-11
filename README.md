@@ -77,7 +77,7 @@ They are designed to take one trained AI model and output the probability of the
 **Example:**
 
 ```sh
-python3 ./trojan_detector_old.py --model_filepath ./trojai/datasets/round1/id-00000001/model.pt  --result_filepath ./trojai/datasets/round1/scratch/test_python_output.txt --scratch_dirpath .trojai/datasets/round1/scratch --examples_dirpath ./trojai/datasets/round1/id-00000001/example_data
+python3 ./trojan_detector_round1.py --model_filepath ./trojai/datasets/round1/id-00000001/model.pt  --result_filepath ./trojai/datasets/round1/scratch/test_python_output.txt --scratch_dirpath .trojai/datasets/round1/scratch --examples_dirpath ./trojai/datasets/round1/id-00000001/example_data
 ```
 
 ```sh

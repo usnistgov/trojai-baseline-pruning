@@ -399,12 +399,12 @@ class TrojanDetector:
             print('INFO: reset- pruning for sample_shift:', sample_shift)
             prune_start = time.perf_counter()
 
+            # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
+            if 'shufflenet' in self.model_name and 'remove' in self.pruning_method:
+                self.pruning_method = 'reset'
+
             try:
                 if 'remove' in self.pruning_method:
-                    # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
-                    if 'shufflenet' in self.model_name:
-                        self.pruning_method = 'reset'
-
                     prune_model(model, self.model_name, output_transform, sample_shift, self.sampling_method, self.ranking_method,
                                 self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
@@ -562,7 +562,7 @@ class TrojanDetector:
                             default='100')
         parser.add_argument('--linear_regression_filepath', type=str,
                             help='The linear regression filepath. Used to apply the results of the linear regression.',
-                            default='./linear_regression_data/r4_reset_L1_targeted_15_10_0p067.csv')
+                            default='')
         parser.add_argument('--trim_pruned_amount', type=float,
                             help='Amount used when calculating the sampling probability for trim.',
                             default='0.5')
@@ -631,3 +631,17 @@ class TrojanDetector:
             trojanDetector.update_configuration_from_optimal_configuration_csv_filepath(args.optimal_configuration_csv_filepath)
 
         return trojanDetector
+
+if __name__ == '__main__':
+    entries = globals().copy()
+
+    print('torch version: %s \n' % (torch.__version__))
+
+    transform = None
+    # transforms.Compose([
+    # transforms.ToPILImage(),
+    # transforms.CenterCrop(224),
+    # transforms.ToTensor()])
+
+    trojan_detector = TrojanDetector.processParameters(transform)
+    trojan_detector.prune_model()
