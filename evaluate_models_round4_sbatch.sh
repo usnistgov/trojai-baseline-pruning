@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=general
+#SBATCH --partition=batch
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=10
 #SBATCH --gres=gpu:1
