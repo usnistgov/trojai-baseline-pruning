@@ -2,7 +2,7 @@
 # **************************
 # MODIFY THESE OPTIONS - setup for nisaba.nist.gov
 
-#SBATCH --partition=general
+#SBATCH --partition=batch
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=10
 #SBATCH --gres=gpu:1
