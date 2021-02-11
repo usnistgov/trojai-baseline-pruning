@@ -4,13 +4,16 @@
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
-MODEL_DIR=/home/pnb/raid1/trojai/datasets/round4/round4-train-dataset
+#MODEL_DIR=/home/pnb/raid1/trojai/datasets/round4/round4-train-dataset
+MODEL_DIR=/wrk/pnb/trojai_data/round4/round4-train-dataset
 
 #ACTIVE_DIR=/home/trojai/active
 
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
-RESULT_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
-SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
+#RESULT_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
+#SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
+RESULT_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
+SCRATCH_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
@@ -31,7 +34,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_round4.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
+			python ./trojan_detector_round4_new.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

@@ -306,37 +306,38 @@ class TrojanDetector:
     def prune_model(self):
         ##########################################
         # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
-        if 'remove' in self.pruning_method and 'shufflenet' in self.model_name:
-            prob_trojan_in_model = 0.5
-            with open(self.scratch_filepath, 'a') as fh:
-                # fh.write("model_filepath, {}, ".format(model_filepath))
-                fh.write("number of params, {}, ".format(0))
-                fh.write("{}, ".format(self.model_name))
-                fh.write("{}, ".format(self.pruning_method))
-                fh.write("{}, ".format(self.sampling_method))
-                fh.write("{}, ".format(self.ranking_method))
-                fh.write("{}, ".format(self.num_samples))
-                fh.write("{}, ".format(self.num_images_used))
-                fh.write("{:.4f}, ".format(self.sampling_probability))
-                for i in range(self.num_samples):
-                    fh.write("{:.4f}, ".format(0))
-
-                fh.write("mean, {:.4f}, ".format(0))
-                fh.write("stdev, {:.4f}, ".format(0))
-                fh.write("min, {:.4f}, ".format(0))
-                fh.write("max, {:.4f}, ".format(0))
-                fh.write("coef_var, {:.4f}, ".format(0))
-                fh.write("num_min2max_ordered, {}, ".format(0))
-                fh.write("num_max2min_ordered, {}, ".format(0))
-                fh.write("slope, {:.4f}, ".format(0))
-                fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
-                fh.write("execution time [s], {}, \n".format((0)))
+        # if 'remove' in self.pruning_method and 'shufflenet' in self.model_name:
+        #     self.pruning_method = 'reset'
+            #prob_trojan_in_model = 0.5
+            # with open(self.scratch_filepath, 'a') as fh:
+            #     # fh.write("model_filepath, {}, ".format(model_filepath))
+            #     fh.write("number of params, {}, ".format(0))
+            #     fh.write("{}, ".format(self.model_name))
+            #     fh.write("{}, ".format(self.pruning_method))
+            #     fh.write("{}, ".format(self.sampling_method))
+            #     fh.write("{}, ".format(self.ranking_method))
+            #     fh.write("{}, ".format(self.num_samples))
+            #     fh.write("{}, ".format(self.num_images_used))
+            #     fh.write("{:.4f}, ".format(self.sampling_probability))
+            #     for i in range(self.num_samples):
+            #         fh.write("{:.4f}, ".format(0))
+            #
+            #     fh.write("mean, {:.4f}, ".format(0))
+            #     fh.write("stdev, {:.4f}, ".format(0))
+            #     fh.write("min, {:.4f}, ".format(0))
+            #     fh.write("max, {:.4f}, ".format(0))
+            #     fh.write("coef_var, {:.4f}, ".format(0))
+            #     fh.write("num_min2max_ordered, {}, ".format(0))
+            #     fh.write("num_max2min_ordered, {}, ".format(0))
+            #     fh.write("slope, {:.4f}, ".format(0))
+            #     fh.write("prob_trojan_in_model, {:.4f}, ".format(prob_trojan_in_model))
+            #     fh.write("execution time [s], {}, ".format((0)))
 
             # write the result to a file
-            with open(self.result_filepath, 'w') as fh:
-                fh.write("{}".format(prob_trojan_in_model))
+            # with open(self.result_filepath, 'w') as fh:
+            #     fh.write("{}".format(prob_trojan_in_model))
 
-            return prob_trojan_in_model
+            # return prob_trojan_in_model
 
         dataset = extended_dataset(self.example_filenames, transform=self.transform, num_iterations=self.num_duplicate_data_iterations)
         loader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=self.num_workers)
@@ -400,6 +401,10 @@ class TrojanDetector:
 
             try:
                 if 'remove' in self.pruning_method:
+                    # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
+                    if 'shufflenet' in self.model_name:
+                        self.pruning_method = 'reset'
+
                     prune_model(model, self.model_name, output_transform, sample_shift, self.sampling_method, self.ranking_method,
                                 self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
