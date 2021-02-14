@@ -14,7 +14,7 @@ import advertorch.attacks
 import advertorch.context
 import transformers
 
-from model_classifier_round2 import model_classifier
+from model_classifier_round5 import model_classifier
 from extended_dataset_nlp import extended_dataset_nlp
 from remove_prune import prune_model
 from reset_prune import reset_prune_model

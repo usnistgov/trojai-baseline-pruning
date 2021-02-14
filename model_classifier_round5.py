@@ -70,27 +70,31 @@ class model_classifier:
     vgg11_bn_size = float(515.8239454)  # in MB
     vgg13_bn_size = float(537.372336)  # in MB
     vgg16_bn_size = float(558.661882)  # in MB
+    lstm_linear_model_size = float(14.7)
+    linear_model_size = float(0.8)
+    gru_linear_size = float(14.7)
 
+    # TODO: Add NLP model names as needed 'LstmLinear', 'GruLinear', 'Linear'
     MODEL_ARCHITECTURES = ['resnet','densenet','googlenet','inception','squeezenet','mobilenet','shufflenetv2','vgg', 'LstmLinear', 'GruLinear', 'Linear']
-    NUMBER_OF_TYPES_PER_ARCH = [7,4,1,1,2,1,3,3]
+    NUMBER_OF_TYPES_PER_ARCH = [7,4,1,1,2,1,3,3,1,1,1]
     MODEL_NAMES = ["resnet18","resnet34","resnet50","resnet101","resnet152","wide_resnet50", "wide_resnet101",
                    "densenet121","densenet161","densenet169","densenet201",
                    "inceptionv1(googlenet)","inceptionv3",
                    "squeezenetv1_0","squeezenetv1_1","mobilenetv2",
                    "shufflenet1_0","shufflenet1_5","shufflenet2_0",
-                   "vgg11_bn", "vgg13_bn","vgg16_bn"]
+                   "vgg11_bn", "vgg13_bn","vgg16_bn", 'LstmLinear', 'GruLinear', 'Linear']
     MODEL_REF_SIZES = [resnet18_size,resnet34_size,resnet50_size,resnet101_size, resnet152_size,wideresnet50_size,wideresnet101_size,
                        densenet121_size,densenet161_size,densenet169_size,densenet201_size,
                        inception1_googlenet_size,inceptionv3_size,
                        squeezenetv1_0_size,squeezenetv1_1_size,mobilenetv2_size,
                        shufflenet1_0_size,shufflenet1_5_size,shufflenet2_0_size,
-                       vgg11_bn_size,vgg13_bn_size,vgg16_bn_size]
+                       vgg11_bn_size,vgg13_bn_size,vgg16_bn_size, lstm_linear_model_size, linear_model_size, gru_linear_size]
     MODEL_SIZE_STDEV = [0.010747652, 0.012185269, 0.051370421, 0.062585081, 0.074508965, 0.044384475, 0.047864105,
                         0.038431258, 0.063003244, 0.066035393, 0.073138502,
                         0.024616621, 0.045563637,
                         0.010976248, 0.015943522, 0.030727859,
                         0.023552785, 0.026794575, 0.044872556,
-                        0.391894373, 0.093213096, 0.088079363]
+                        0.391894373, 0.093213096, 0.088079363, 0.1, 0.1, 0.1]
 
     model_filepath = ''
     model_size = 0
@@ -114,7 +118,10 @@ class model_classifier:
         model_name_str = str(str_model)
         print('model_name_str:', model_name_str)
         # split on the common class name yielding ["<class '", "resnet.ResNet'>"]
-        split_string = model_name_str.split("torchvision.models.")
+        split_string = model_name_str.split("model_factories.")
+        # print(split_string)
+        # second split
+        print(split_string)
         split_string2 = split_string[1].split(".")
         model_architecture = split_string2[0]
         print('model_architecture:', model_architecture)
