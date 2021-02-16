@@ -9,10 +9,10 @@ import json
 import statistics
 from collections import OrderedDict
 import configargparse
-from torchvision import transforms
-import advertorch.attacks
-import advertorch.context
-import transformers
+# from torchvision import transforms
+# import advertorch.attacks
+# import advertorch.context
+# import transformers
 
 from model_classifier_nlp import model_classifier
 from extended_dataset_nlp import extended_dataset_nlp

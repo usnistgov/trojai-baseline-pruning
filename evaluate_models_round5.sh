@@ -7,6 +7,8 @@
 MODEL_DIR=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset/models
 #MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
 #MODEL_DIR=/mnt/extra-data/data/round5-train-dataset/models
+EMBEDDING_DIRPATH=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset/embeddings
+TOKENIZER_DIRPATH=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset/tokenizers
 
 #ACTIVE_DIR=/home/trojai/active
 
@@ -39,7 +41,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 			echo "entering python command"
-			python ./trojan_detector_nlp.py --model_filepath $dir//model/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
+			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

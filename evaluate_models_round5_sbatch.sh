@@ -20,7 +20,9 @@ PRUNING_METHOD=$3
 #MODEL_DIR=$3
 
 #MODEL_DIR=/home/pnb/raid1/trojai/datasets/round4/round4-train-dataset
-MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
+MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset/models
+EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round5/round5-train-dataset/embeddings
+TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round5/round5-train-dataset/tokenizers
 
 #ACTIVE_DIR=/home/trojai/active
 
@@ -30,8 +32,7 @@ MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
 RESULT_DIR=/wrk/pnb/trojai_data/round5/scratch_r5-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
 SCRATCH_DIR=/wrk/pnb/trojai_data/round5/scratch_r5-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
 
-EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round5/round5-train-dataset/embeddings
-TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round5/round5-train-dataset/tokenizers
+
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
