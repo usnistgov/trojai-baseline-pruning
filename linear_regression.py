@@ -71,6 +71,7 @@ def read_regression_coefficients(linear_regression_filepath, target_model_name )
         with open(linear_regression_filepath) as csvfile:
             readCSV = csv.reader(csvfile, delimiter=',')
             index = 0
+            architecture_name_index = -1
             for row in readCSV:
                 print(index,'th row:', row)
                 if index == 0:
@@ -80,6 +81,9 @@ def read_regression_coefficients(linear_regression_filepath, target_model_name )
                     start = end = -1
                     for elem in row:
                         elem = elem.strip()
+                        if 'architecture' in elem.lower():
+                            architecture_name_index = col
+
                         if elem.startswith('b') and len(elem) < 4: # support for nS<99
                             if flag:
                                 start = col
@@ -96,7 +100,7 @@ def read_regression_coefficients(linear_regression_filepath, target_model_name )
                     coef = [-1] * (end+1-start)
                 else:
                     # parse the 0th element to determine model name
-                    model_name = row[0]
+                    model_name = row[architecture_name_index]
                     print('model_name:',model_name)
                     if model_name in target_model_name:
                         for col in range(start, end+1):

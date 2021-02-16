@@ -17,89 +17,59 @@ import sys
 
 import torch
 import time
-import torchvision
 
 """ 
-This class returns the AI architecture and its model type based on the torchivision class and the model file size.
-It was designed for TrojAI Round 2 Challenge datasets consisting of 22 AI architectures
-"""
-# round 1 trojAI challenge
-# Resnet 50,
-# Densenet121
-# Inception v3
+This class returns the AI architecture for NLP problems in TrojAI Round 5
 
-# round 2 trojAI challenge:
-# Resnet 18, 34, 50, 101, 152
-# WideResnet 50, 101
-# Densenet 121, 161, 169, 201
-# Inception v1(googlenet), v3
-# Squeezenet 1.0, 1.1
-# Mobilenet mobilenet_v2
-# ShuffleNet 1.0, 1.5, and 2.0
-# VGG vgg11_bn, vgg13_bn, vgg16_bn
+From: https://pages.nist.gov/trojai/docs/data.html#round-5
+The embeddings used are drawn from HuggingFace.
+EMBEDDING_LEVELS = ['BERT', 'GPT-2', 'DistilBERT']
+Each broad embedding type (i.e. BERT) has several flavors to choose from in HuggingFace. 
+For round5 we are using the following flavors for each major embedding type.
+
+EMBEDDING_FLAVOR_LEVELS = dict()
+EMBEDDING_FLAVOR_LEVELS['BERT'] = ['bert-base-uncased']
+EMBEDDING_FLAVOR_LEVELS['GPT-2'] = ['gpt2']
+EMBEDDING_FLAVOR_LEVELS['DistilBERT'] = ['distilbert-base-uncased']
+
+It was designed for TrojAI Round 5 Challenge datasets consisting of 3 AI architectures
+"""
+
+
+# round 5 trojAI challenge
 
 
 class model_classifier:
-    # 22 models in round 2
+    # 3 models in round 5
     # centroid file size values per architecture model
-    squeezenetv1_1_size = float(2.962577345)  # in MB
-    squeezenetv1_0_size = float(3.010153304)  # in MB
 
-    mobilenetv2_size = float(9.237641118)  # in MB
 
-    shufflenet1_0_size = float(5.26193666)  # in MB
-    shufflenet1_5_size = float(10.20389327)  # in MB
-    shufflenet2_0_size = float(21.75808312)  # in MB
 
-    inception1_googlenet_size = float(22.6557703)  # in MB
-    inceptionv3_size = float(87.62433951)  # in MB
 
-    densenet121_size = float(28.48473237)  # in MB
-    densenet169_size = float(51.06529902)  # in MB
-    densenet201_size = float(73.86921903)  # in MB
-    densenet161_size = float(107.2791326)  # in MB
+    lstm_linear_model_size = float(14.72431262)  # id-0 (poisoned): LstmLinear 14,724,241 bytes, "embedding": "GPT-2",
+    linear_model_size = float(0.008001016)  # id-01 (clean): Linear 8,001 bytes, "embedding": "DistilBERT",
+    gru_linear_size = float(11.04610831)  # id-02 (poisoned): GruLinear 11,046,033 bytes, "embedding": "BERT",
 
-    resnet18_size = float(44.8263574)  # in MB
-    resnet34_size = float(85.32276613)  # in MB
-    resnet50_size = float(94.48834923)  # in MB
-    resnet101_size = float(170.7656982)  # in MB wrong
-    resnet152_size = float(233.6403364)  # in MB
-    wideresnet50_size = float(267.8514268)  # in MB
-    wideresnet101_size = float(500.261398)  # in MB
-
-    vgg11_bn_size = float(515.8239454)  # in MB
-    vgg13_bn_size = float(537.372336)  # in MB
-    vgg16_bn_size = float(558.661882)  # in MB
-
-    MODEL_ARCHITECTURES = ['resnet','densenet','googlenet','inception','squeezenet','mobilenet','shufflenetv2','vgg', 'LstmLinear', 'GruLinear', 'Linear']
-    NUMBER_OF_TYPES_PER_ARCH = [7,4,1,1,2,1,3,3]
-    MODEL_NAMES = ["resnet18","resnet34","resnet50","resnet101","resnet152","wide_resnet50", "wide_resnet101",
-                   "densenet121","densenet161","densenet169","densenet201",
-                   "inceptionv1(googlenet)","inceptionv3",
-                   "squeezenetv1_0","squeezenetv1_1","mobilenetv2",
-                   "shufflenet1_0","shufflenet1_5","shufflenet2_0",
-                   "vgg11_bn", "vgg13_bn","vgg16_bn"]
-    MODEL_REF_SIZES = [resnet18_size,resnet34_size,resnet50_size,resnet101_size, resnet152_size,wideresnet50_size,wideresnet101_size,
-                       densenet121_size,densenet161_size,densenet169_size,densenet201_size,
-                       inception1_googlenet_size,inceptionv3_size,
-                       squeezenetv1_0_size,squeezenetv1_1_size,mobilenetv2_size,
-                       shufflenet1_0_size,shufflenet1_5_size,shufflenet2_0_size,
-                       vgg11_bn_size,vgg13_bn_size,vgg16_bn_size]
-    MODEL_SIZE_STDEV = [0.010747652, 0.012185269, 0.051370421, 0.062585081, 0.074508965, 0.044384475, 0.047864105,
-                        0.038431258, 0.063003244, 0.066035393, 0.073138502,
-                        0.024616621, 0.045563637,
-                        0.010976248, 0.015943522, 0.030727859,
-                        0.023552785, 0.026794575, 0.044872556,
-                        0.391894373, 0.093213096, 0.088079363]
+    # TODO: Add NLP model names as needed 'LstmLinear', 'GruLinear', 'Linear'
+    MODEL_ARCHITECTURES = ['LstmLinearModel', 'GruLinearModel', 'LinearModel']
+    NUMBER_OF_TYPES_PER_ARCH = [1, 1, 1]
+    # MODEL_NAMES = ['LstmLinear', 'GruLinear', 'Linear']
+    MODEL_REF_SIZES = [lstm_linear_model_size, linear_model_size, gru_linear_size]
+    MODEL_SIZE_STDEV = [0.000127959, 1.28037E-07, 0.000128203]
 
     model_filepath = ''
     model_size = 0
-    min_model_size_delta = sys.float_info.max #(1.7976931348623157e+308)
+    min_model_size_delta = sys.float_info.max  # (1.7976931348623157e+308)
     model_architecture = ''
-    model_name = ''
+    # model_name = ''
     model_type = -1
 
     def __init__(self, model_filepath: object) -> object:
+        """
+
+        Args:
+            model_filepath (object): 
+        """
         self.model_filepath = model_filepath
         self.model_size = 0
 
@@ -114,36 +84,37 @@ class model_classifier:
         model_name_str = str(str_model)
         print('model_name_str:', model_name_str)
         # split on the common class name yielding ["<class '", "resnet.ResNet'>"]
-        split_string = model_name_str.split("torchvision.models.")
-        split_string2 = split_string[1].split(".")
+        split_string = model_name_str.split("model_factories.")
+        # print(split_string)
+        # second split
+        print('split_string:', split_string)
+        split_string2 = split_string[1].split("'")
         model_architecture = split_string2[0]
         print('model_architecture:', model_architecture)
         self.model_architecture = model_architecture
-        return model_name_str,model_architecture
+        return model_name_str, model_architecture
 
     ###########################
     def switch_architecture(self, argument):
         """
-        @argument integer [0,20]
+        @argument integer [0,2]
         :return: string
         """
         if not isinstance(argument, int):
             print('ERROR: switch_architecture - argument is not int: ', argument)
             return 'Invalid architecture'
 
-        if argument < 0 or argument > len(self.MODEL_NAMES):
+        if argument < 0 or argument > len(self.MODEL_ARCHITECTURES):
             print('ERROR: switch_architecture - argument is out of range: ', argument)
             return 'Invalid architecture'
 
-        return self.MODEL_NAMES[argument]
+        return self.MODEL_ARCHITECTURES[argument]
 
-    ########################################################
-    # classify AI model type given an architecture based on file size
-    def classify_type(self, model_architecture):
+    def get_filesize(self, model_architecture):
         """
-        This method classifies a model based on its file size
+        This method returns a file size of a model
         :param model_architecture: model_architecture defined by self.MODEL_ARCHITECTURES
-        :return: model_name (string), model_type (int associated with model_name), and delta size (ref-model_size)
+        :return: file size and delta size (ref-model_size)
         """
         a = model_classifier(self.model_filepath)
         self.model_architecture = model_architecture
@@ -153,41 +124,21 @@ class model_classifier:
         print('Model size in MB: {}'.format(size))
         self.model_size = size
 
-        # compute the offsets depending on the number of model types per architecture
-        offset = []
-        cum = 0
-        for i in range(len(a.NUMBER_OF_TYPES_PER_ARCH)):
-            offset.append(cum)
-            cum = cum + a.NUMBER_OF_TYPES_PER_ARCH[i]
-
-        #print('offset:', offset)
-
         found_match = False
+        min_delta = float('inf')
         for i in range(len(a.MODEL_ARCHITECTURES)):
-            if found_match:
-                continue
-            model_name = a.MODEL_NAMES[offset[i]]
-            model_type = offset[i]
-            min_model_size_delta = a.MODEL_REF_SIZES[model_type] - size
-            if model_architecture.lower() == a.MODEL_ARCHITECTURES[i].lower():
-                print('match architecture:', model_architecture)
-                number_of_type = a.NUMBER_OF_TYPES_PER_ARCH[i]
-                min_delta = float('inf')
-                found_match = True
-                for j in range(offset[i], offset[i] + number_of_type):
-                    if abs(size - a.MODEL_REF_SIZES[j]) < min_delta:
-                        min_delta = abs(size - a.MODEL_REF_SIZES[j])
-                        model_name = a.MODEL_NAMES[j]
-                        min_model_size_delta = a.MODEL_REF_SIZES[j] - size
-                        model_type = j
+            if abs(size - a.MODEL_REF_SIZES[i]) < min_delta:
+                min_delta = abs(size - a.MODEL_REF_SIZES[i])
+                model_type = i
+
+        min_model_size_delta = min_delta
 
         self.model_type = model_type
-        self.model_name = model_name
         self.min_model_size_delta = min_model_size_delta
 
         print('classified the model based on model_type as:\t', a.switch_architecture(model_type))
-        print('model_name:', model_name)
-        return model_name, model_type, min_model_size_delta
+        return size, model_type, min_model_size_delta
+
 
 ###################################
 # sweep over all models in model_dirpath and save the model architecture and model type
@@ -235,13 +186,12 @@ def batch_model_name(model_dirpath, result_filepath, model_format='.pt'):
         # based on the model name and model size determine AI model type
         # e.g., model_architecture = resnet, model_size = 94.381 MB ==> model_type = 1- N with corresponding
         # model_name = resnet50
-        model_name, model_type, min_model_size_delta = a.classify_type(model_architecture)
-        print('model_size: %s ' % a.model_size)
+        model_size, model_type, min_model_size_delta = a.get_filesize(model_architecture)
+        print('model_file_size: %s ' % model_size)
         print('model_type: %s ' % model_type)
         print('file size delta between a model and the reference model: %s ' % min_model_size_delta)
-        #model_name = a.switch_architecture(model_type)
-        print('classified the model as: ', model_name)
-
+        # model_name = a.switch_architecture(model_type)
+        print('classified the model as: ', model_architecture)
 
         ##################
         with open(result_filepath, 'a') as fh:
@@ -250,15 +200,12 @@ def batch_model_name(model_dirpath, result_filepath, model_format='.pt'):
             fh.write("model_class_str, {}, ".format(model_class_str))
             fh.write("model_architecture, {}, ".format(model_architecture))
             fh.write("model_type, {}, ".format(model_type))
-            fh.write("model_name, {}, ".format(model_name))
             fh.write("model_size, {}, ".format(a.model_size))
             fh.write("min_model_size_delta, {} \n".format(min_model_size_delta))
-
 
     end = time.time()
     with open(result_filepath, 'a') as fh:
         fh.write("execution time [s], {} \n \n ".format((end - start)))
-
 
 
 ###############################################################
@@ -270,7 +217,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Load models and report their names and file size.')
     parser.add_argument('--model_dirpath', type=str,
-                        help='Directory path to all pytorch genrated data and models to be evaluated.',
+                        help='Directory path to all pytorch generated data and models to be evaluated.',
                         required=True)
     parser.add_argument('--result_filepath', type=str,
                         help='File path to the file where output result should be written. After execution this file should contain a single line with a single floating point trojan probability.',

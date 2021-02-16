@@ -1,19 +1,34 @@
 #!/bin/bash
+#SBATCH --partition=batch
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=10
+#SBATCH --gres=gpu:1
+#SBATCH --job-name=base_trojai
+#SBATCH -o log-%N.%j.out
+#SBATCH --time=48:0:0
+printf -v numStr "%08d" ${1}
+echo "id-$numStr"
+source /apps/anaconda3/etc/profile.d/conda.sh
+conda activate r4venv
+
+NUM_SAMPLES=$1
+NUM_IMAGES=$2
+PRUNING_METHOD=$3
 
 #CONTAINER_NAME=$1
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
 #MODEL_DIR=/home/pnb/raid1/trojai/datasets/round4/round4-train-dataset
-MODEL_DIR=/wrk/pnb/trojai_data/round4/round4-train-dataset
+MODEL_DIR=/wrk/pnb/trojai_data/round3/round3-train-dataset
 
 #ACTIVE_DIR=/home/trojai/active
 
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
 #RESULT_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
 #SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
-RESULT_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
-SCRATCH_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
+RESULT_DIR=/wrk/pnb/trojai_data/round3/scratch_r3-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
+SCRATCH_DIR=/wrk/pnb/trojai_data/round3/scratch_r3-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
@@ -34,7 +49,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_round4_new.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
+			python ./trojan_detector_round3_new.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

@@ -17,7 +17,7 @@ import time
 
 import torch
 import numpy as np
-import trojan_detector as td
+import trojan_detector_round1 as td
 import tarfile
 import csv
 from model_classifier import model_classifier
