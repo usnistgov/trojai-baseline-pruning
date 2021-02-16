@@ -4,7 +4,7 @@
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
-MODEL_DIR=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset
+MODEL_DIR=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset/models
 #MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
 #MODEL_DIR=/mnt/extra-data/data/round5-train-dataset/models
 
@@ -30,14 +30,16 @@ mkdir -p $SCRATCH_DIR
 # find all the 'id-' model files and shuffle their iteration order
 for dir in `find $MODEL_DIR -maxdepth 1 -type d | shuf`
 do
+	echo "enter $dir"
 	# check that the directory is not the root MODEL_DIR
 	if [ "$dir" != "$MODEL_DIR" ]; then
 		# check that the directory starts with "id"
 		MODEL="$(basename $dir)"
+		echo "enter $(basename $dir)"
 
 		if [[ $MODEL == id* ]] ; then
-
-			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
+			echo "entering python command"
+			python ./trojan_detector_nlp.py --model_filepath $dir//model/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
