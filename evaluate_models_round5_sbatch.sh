@@ -30,6 +30,9 @@ MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
 RESULT_DIR=/wrk/pnb/trojai_data/round5/scratch_r5-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
 SCRATCH_DIR=/wrk/pnb/trojai_data/round5/scratch_r5-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
 
+EMBEDDING_DIRPATH=/path/to/embeddings
+TOKENIZER_DIRPATH=/path/to/tokenizer
+
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
 
@@ -49,7 +52,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD
+			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
