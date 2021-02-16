@@ -3,12 +3,16 @@
 #CONTAINER_NAME=$1
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
-MODEL_DIR=/home/jameshobbs/datasets-round2
+#MODEL_DIR=/home/jameshobbs/datasets-round2
+MODEL_DIR=/home/pnb/raid1/trojai/datasets/round2/round2-train-dataset
 #ACTIVE_DIR=/home/trojai/active
 
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
-RESULT_DIR=/home/jameshobbs/round2-results
-SCRATCH_DIR=/home/jameshobbs/round2-scratch_gpu_final
+#RESULT_DIR=/home/jameshobbs/round2-results
+#SCRATCH_DIR=/home/jameshobbs/round2-scratch_gpu_final
+RESULT_DIR=/home/pnb/raid1/trojai/datasets/round2/scratch
+SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round2/scratch
+
 
 #USE_CUDA=""
 USE_CUDA=True

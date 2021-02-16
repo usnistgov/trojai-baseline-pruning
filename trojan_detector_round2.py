@@ -306,6 +306,9 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     #
     num_images_avail = len(fns)
 
+    # use all available images
+    num_images_used = num_images_avail
+
     with open(scratch_filepath, 'a') as fh:
         fh.write("num_images_avail, {}, ".format(num_images_avail))
         fh.write("num_images_used, {}, ".format(num_images_used))
