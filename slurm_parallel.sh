@@ -5,7 +5,7 @@ do
   do
     for pm in reset remove
     do
-      sbatch ./evaluate_models_round3_sbatch.sh $nS $nD $pm
+      sbatch ./evaluate_models_round5_sbatch.sh $nS $nD $pm
     done
   done
 done

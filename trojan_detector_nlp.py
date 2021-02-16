@@ -14,7 +14,7 @@ import advertorch.attacks
 import advertorch.context
 import transformers
 
-from model_classifier_round5 import model_classifier
+from model_classifier_nlp import model_classifier
 from extended_dataset_nlp import extended_dataset_nlp
 from remove_prune import prune_model
 from reset_prune import reset_prune_model
@@ -113,11 +113,13 @@ class TrojanDetectorNLP:
         a = model_classifier(model_filepath)
         # determine the AI model architecture based on loaded class type
         self.model_class_str, self.model_architecture = a.classify_architecture("cpu")
-        self.model_name, self.model_type, self.min_model_size_delta = a.classify_type(self.model_architecture)
+        self.model_size, self.model_type, self.min_model_size_delta = a.get_filesize(self.model_architecture)
+
+        #self.model_name, self.model_type, self.min_model_size_delta = a.classify_type(self.model_architecture)
         print('model_type: %s\n' % self.model_type)
         print('file size delta between a model and the reference model: %s\n' % self.min_model_size_delta)
-        model_name = a.switch_architecture(self.model_type)
-        print('classified the model as:\t', self.model_name)
+        model_architecture = a.switch_architecture(self.model_type)
+        print('classified the model as:\t', self.model_architecture)
         print('model size: \t', a.model_size)
         self.ref_model_size = a.model_size + self.min_model_size_delta
         print('reference model size: \t', self.ref_model_size)
@@ -125,9 +127,9 @@ class TrojanDetectorNLP:
         print('pruning_method (PM):', self.pruning_method, ' sampling method (SM):', self.sampling_method,
               ' ranking method (RM):',
               self.ranking_method)
-        print('num_samples (nS):', self.num_samples, ' num_images_used (nD):', self.num_images_used)
+        print('num_samples (nS):', self.num_samples, ' num_sentiment_text_used (nD):', self.num_images_used)
 
-        self.scratch_filepath = os.path.join(self.scratch_dirpath, self.model_name + '_log.csv')
+        self.scratch_filepath = os.path.join(self.scratch_dirpath, self.model_architecture + '_log.csv')
 
         # to avoid messages about serialization on cpu
         torch.nn.Module.dump_path = 'False'
@@ -145,7 +147,7 @@ class TrojanDetectorNLP:
             self.gt_model_label = -1
 
         with open(self.scratch_filepath, 'a') as fh:
-            fh.write("{}, ".format(model_name))
+            fh.write("{}, ".format(model_architecture))
             fh.write("model_filepath, {}, ".format(self.model_filepath))
             fh.write("model_size, {}, ".format(a.model_size))
             fh.write("ref_model_size, {:.4f}, ".format(self.ref_model_size))
@@ -156,7 +158,7 @@ class TrojanDetectorNLP:
         self.sampling_probability = self._configure_prune_sampling_probability()
 
         if os.path.isfile(self.linear_regression_filepath):
-            self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_name)
+            self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_architecture)
         else:
             self.trained_coef = None
 
@@ -211,8 +213,8 @@ class TrojanDetectorNLP:
                             col_index = col_index + 1
                         coef = [-1] * (end + 1 - start)
                     else:
-                        if self.model_name == row[architecture_name_index]:
-                            print('Found model name: {}'.format(self.model_name))
+                        if self.model_architecture == row[architecture_name_index]:
+                            print('Found model architecture: {}'.format(self.model_architecture))
                             self.num_images_used = int(row[num_images_used_index])
                             self.num_samples = int(row[num_samples_index])
                             self.pruning_method = row[pruning_method_index]
@@ -242,9 +244,9 @@ class TrojanDetectorNLP:
 
         num_images_avail = len(self.example_filenames)
         with open(self.scratch_filepath, 'a') as fh:
-            fh.write("num_images_avail, {}, ".format(num_images_avail))
-            fh.write("num_images_used, {}, ".format(self.num_images_used))
-        print('number of images available for eval per model:', num_images_avail)
+            fh.write("num_sentiment_text_avail, {}, ".format(num_images_avail))
+            fh.write("num_sentiment_text_used, {}, ".format(self.num_images_used))
+        print('number of sentiment_text available for eval per model:', num_images_avail)
 
         if num_images_avail < self.num_images_used:
             self.num_images_used = num_images_avail
@@ -273,7 +275,7 @@ class TrojanDetectorNLP:
         if 'remove' in self.pruning_method:
             if self.num_samples <= self.remove_pruned_num_samples_threshold:
                 for key, value in self.min_one_filter.items():
-                    if key in self.model_name:
+                    if key in self.model_architecture:
                         sampling_probability = value
             else:
                 # this is the setup for nS>6
@@ -281,9 +283,9 @@ class TrojanDetectorNLP:
                     self.remove_pruned_divisor / self.num_samples) / self.remove_pruned_divisor
 
             # there is a random failure of densenet models for sampling_probability larger than 0.02
-            if 'densenet' in self.model_name and sampling_probability > 0.02:
-                # this value is computed as if for num_samples = 50 --> sampling_probability = 0.02
-                sampling_probability = 0.02
+            # if 'densenet' in self.model_name and sampling_probability > 0.02:
+            #     # this value is computed as if for num_samples = 50 --> sampling_probability = 0.02
+            #     sampling_probability = 0.02
 
         return sampling_probability
 
@@ -332,7 +334,7 @@ class TrojanDetectorNLP:
 
         return preprocessed_data
 
-    def _eval(self, model, preprocessed_data, result_filepath, model_name):
+    def _eval(self, model, preprocessed_data, result_filepath, model_architecture):
         correct = 0.0
         total = 0.0
 
@@ -382,15 +384,17 @@ class TrojanDetectorNLP:
         #####################################
         # prepare the model and transforms
         # TODO check is setting the model variable here works
-        if 'googlenet' in self.model_name or 'inception' in self.model_name:
-            model_orig.aux_logits = False
-        elif 'fcn' in self.model_name or 'deeplabv3' in self.model_name:
-            model_orig.aux_loss = None
+        # if 'googlenet' in self.model_name or 'inception' in self.model_name:
+        #     model_orig.aux_logits = False
+        # elif 'fcn' in self.model_name or 'deeplabv3' in self.model_name:
+        #     model_orig.aux_loss = None
+        #
+        # if 'fcn' in self.model_name or 'deeplabv3' in self.model_name:
+        #     output_transform = lambda x: x['out']
+        # else:
+        #     output_transform = None
 
-        if 'fcn' in self.model_name or 'deeplabv3' in self.model_name:
-            output_transform = lambda x: x['out']
-        else:
-            output_transform = None
+        output_transform = None
 
         acc_pruned_model_shift = []
         pruning_shift = []
@@ -417,24 +421,24 @@ class TrojanDetectorNLP:
             # print('model before pruning: ', model_filepath, ' acc_model: ', acc_model, ' acc_not_pruned_model: ', acc_not_pruned_model)
             # #print('before pruning:', model)
 
-            print('INFO: reset- pruning for sample_shift:', sample_shift)
+            print('INFO: ', self.pruning_method, ' pruning method for sample_shift:', sample_shift)
             prune_start = time.perf_counter()
 
             # Temporary hack for the prune method = remove because  the shufflenet architecture is not supported
-            if 'shufflenet' in self.model_name and 'remove' in self.pruning_method:
-                self.pruning_method = 'reset'
+            # if 'shufflenet' in self.model_name and 'remove' in self.pruning_method:
+            #     self.pruning_method = 'reset'
 
             try:
                 if 'remove' in self.pruning_method:
-                    prune_model(model, self.model_name, output_transform, sample_shift, self.sampling_method,
+                    prune_model(model, self.model_architecture, output_transform, sample_shift, self.sampling_method,
                                 self.ranking_method,
                                 self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
-                    reset_prune_model(model, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
+                    reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
                                       self.sampling_probability,
                                       self.num_samples)
                 if 'trim' in self.pruning_method:
-                    trim_model(model, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
+                    trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
                                self.sampling_probability,
                                self.num_samples, self.trim_pruned_amount)
 
@@ -450,7 +454,7 @@ class TrojanDetectorNLP:
             prune_times.append(prune_time)
 
             eval_start = time.perf_counter()
-            acc_pruned_model = self._eval(model, preprocessed_data, self.result_filepath, self.model_name)
+            acc_pruned_model = self._eval(model, preprocessed_data, self.result_filepath, self.model_architecture)
             eval_time = time.perf_counter() - eval_start
             eval_times.append(eval_time)
             print('model: ', self.model_filepath, ' acc_model: ', acc_model, ' acc_pruned_model: ', acc_pruned_model)
@@ -519,7 +523,7 @@ class TrojanDetectorNLP:
         with open(self.scratch_filepath, 'a') as fh:
             # fh.write("model_filepath, {}, ".format(model_filepath))
             fh.write("number of params, {}, ".format((params / 1e6)))
-            fh.write("{}, ".format(self.model_name))
+            fh.write("{}, ".format(self.model_architecture))
             fh.write("{}, ".format(self.pruning_method))
             fh.write("{}, ".format(self.sampling_method))
             fh.write("{}, ".format(self.ranking_method))
