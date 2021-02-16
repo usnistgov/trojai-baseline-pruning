@@ -4,19 +4,19 @@
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
-#MODEL_DIR=/home/pnb/raid1/trojai/datasets/round4/round4-train-dataset
-#MODEL_DIR=/wrk/pnb/trojai_data/round4/round4-train-dataset
-MODEL_DIR=/mnt/extra-data/data/round5-train-dataset/models
+MODEL_DIR=/home/pnb/raid1/trojai/datasets/round5/round5-train-dataset
+#MODEL_DIR=/wrk/pnb/trojai_data/round5/round5-train-dataset
+#MODEL_DIR=/mnt/extra-data/data/round5-train-dataset/models
 
 #ACTIVE_DIR=/home/trojai/active
 
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
-#RESULT_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
-#SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round4/scratch_r4
-#RESULT_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
-#SCRATCH_DIR=/wrk/pnb/trojai_data/round4/scratch_r4
-RESULT_DIR=/home/jameshobbs/scratch-r5
-SCRATCH_DIR=/home/jameshobbs/scratch-r5
+RESULT_DIR=/home/pnb/raid1/trojai/datasets/round5/scratch_r5
+SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round5/scratch_r5
+#RESULT_DIR=/wrk/pnb/trojai_data/round5/scratch_r5
+#SCRATCH_DIR=/wrk/pnb/trojai_data/round5/scratch_r5
+#RESULT_DIR=/home/jameshobbs/scratch-r5
+#SCRATCH_DIR=/home/jameshobbs/scratch-r5
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
