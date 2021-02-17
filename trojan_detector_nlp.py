@@ -562,9 +562,9 @@ class TrojanDetectorNLP:
 
         parser.add_argument('--model_filepath', type=str, help='File path to the pytorch model file to be evaluated.',
                             default='./model/model.pt')
-        parser.add_argument('--cls_token_is_first', type=bool,
+        parser.add_argument('--cls_token_is_first',
                             help='Whether the first embedding token should be used as the summary of the text sequence, or the last token.',
-                            default=True)
+                            default=False, action='store_true')
         parser.add_argument('--tokenizer_filepath', type=str,
                             help='File path to the pytorch model (.pt) file containing the correct tokenizer to be used with the model_filepath.',
                             default='./model/tokenizer.pt')
