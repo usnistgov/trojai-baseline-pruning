@@ -699,9 +699,11 @@ class TrojanDetectorNLP:
             print('UPDATED PATHS: tokenizer: {} ; embedding: {}'.format(tokenizer_filepath, embedding_filepath))
 
         if not os.path.isfile(embedding_filepath) or not os.path.isfile(tokenizer_filepath):
-            print('Embedding filepath and tokenizer filepath is not defined: {}, {}'.format(embedding_filepath,
+            print('ERROR: Embedding filepath and tokenizer filepath is not defined: {}, {}'.format(embedding_filepath,
                                                                                             tokenizer_filepath))
             sys.exit(2)
+
+        print('CLS_token_first: {}; Using Cuda: {}'.format(cls_token_is_first, args.use_cuda))
 
         trojanDetector = TrojanDetectorNLP(args.model_filepath, cls_token_is_first,
                                            tokenizer_filepath, embedding_filepath,
