@@ -255,7 +255,9 @@ class TrojanDetectorNLP:
         step = num_images_avail // self.num_images_used
         temp_idx = []
         for i in range(step // 2, num_images_avail, step):
-            temp_idx.append(i)
+            if len(temp_idx) < self.num_images_used:
+                temp_idx.append(i)
+
         example_filenames = [self.example_filenames[i] for i in temp_idx]
 
         return example_filenames

@@ -304,6 +304,9 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     # if len(fns) > 10:
     #     fns = fns[0:5]
     #
+
+    # sort the list of files to assure reproducibility across operating systems
+    fns.sort()
     num_images_avail = len(fns)
 
     with open(scratch_filepath, 'a') as fh:
@@ -321,7 +324,9 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     step = num_images_avail // num_images_used
     temp_idx = []
     for i in range(step // 2, num_images_avail, step):
-        temp_idx.append(i)
+        if len(temp_idx) < num_images_used:
+            temp_idx.append(i)
+
     fns = [fns[i] for i in temp_idx]
     print('selected images:', fns)
 

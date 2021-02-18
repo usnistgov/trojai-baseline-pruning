@@ -223,6 +223,9 @@ class TrojanDetector:
                fn.endswith(self.example_img_format)]
 
         num_images_avail = len(self.example_filenames)
+        # sort the list of files to assure reproducibility across operating systems
+        self.example_filenames.sort()
+
         with open(self.scratch_filepath, 'a') as fh:
             fh.write("num_images_avail, {}, ".format(num_images_avail))
             fh.write("num_images_used, {}, ".format(self.num_images_used))
@@ -235,7 +238,9 @@ class TrojanDetector:
         step = num_images_avail // self.num_images_used
         temp_idx = []
         for i in range(step // 2, num_images_avail, step):
-            temp_idx.append(i)
+            if len(temp_idx) < self.num_images_used:
+                temp_idx.append(i)
+
         example_filenames = [self.example_filenames[i] for i in temp_idx]
 
         return example_filenames

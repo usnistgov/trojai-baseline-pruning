@@ -77,7 +77,16 @@ class model_classifier:
     # determine the AI model architecture based on loaded class type
     def classify_architecture(self, mydevice):
         # load a model
-        model_orig = torch.load(self.model_filepath, map_location=mydevice)
+        try:
+            model_orig = torch.load(self.model_filepath, map_location=mydevice)
+        except:
+            print("Unexpected loading error:", sys.exc_info()[0])
+            # close the line
+            with open(self.scratch_filepath, 'a') as fh:
+                fh.write("\n")
+            raise
+
+        #model_orig = torch.load(self.model_filepath, map_location=mydevice)
         # get the model class name <class 'torchvision.models.resnet.ResNet'>
         str_model = model_orig.__class__
         # convert to string

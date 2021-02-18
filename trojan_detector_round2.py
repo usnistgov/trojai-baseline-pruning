@@ -237,6 +237,7 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
             fh.write("{}".format(prob_trojan_in_model))
 
         return prob_trojan_in_model
+
     ##############################################################
     # Inference the example images in data
     fns = [os.path.join(examples_dirpath, fn) for fn in os.listdir(examples_dirpath) if
@@ -244,16 +245,33 @@ def trojan_detector(model_filepath, result_filepath, scratch_dirpath, examples_d
     # if len(fns) > 10:
     #     fns = fns[0:5]
     #
-    num_images_avail = len(fns)
 
-    # use all available images
-    num_images_used = num_images_avail
+    # sort the list of files to assure reproducibility across operating systems
+    fns.sort()
+    num_images_avail = len(fns)
 
     with open(scratch_filepath, 'a') as fh:
         fh.write("num_images_avail, {}, ".format(num_images_avail))
         fh.write("num_images_used, {}, ".format(num_images_used))
 
+    print('number of images available for eval per model:', num_images_avail)
 
+    if num_images_avail < num_images_used:
+        num_images_used = num_images_avail
+        print('WARNING: ', num_images_avail, ' is less than ', num_images_used)
+        print(
+            'WARNING: this should never happen for round 2 since there are 5-25 classes per model and 10-20 images per class')
+
+    step = num_images_avail // num_images_used
+    temp_idx = []
+    for i in range(step // 2, num_images_avail, step):
+        if len(temp_idx) < num_images_used:
+            temp_idx.append(i)
+
+    fns = [fns[i] for i in temp_idx]
+    print('selected images:', fns)
+
+    ##########################################
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.CenterCrop(224),
