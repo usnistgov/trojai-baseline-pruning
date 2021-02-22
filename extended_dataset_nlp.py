@@ -66,7 +66,7 @@ class extended_dataset_nlp(torch.utils.data.Dataset):
 
         # Load data and get label
         with open(ID, 'r') as fh:
-            text = fh.readline()
+            text = fh.read()
 
         results = self.tokenizer(text, max_length=self.max_input_length - 2, padding=True, truncation=True, return_tensors='pt')
         y = self.labels[index]
