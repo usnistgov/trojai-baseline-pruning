@@ -274,8 +274,8 @@ class TrojanDetector:
         return sampling_probability
 
     def _eval(self, model, test_loader, result_filepath, model_name, use_cuda):
-        correct = 0.0
-        total = 0.0
+        correct = 0
+        total = 0
 
         if torch.cuda.is_available() and use_cuda:
             cuda_copy = True
@@ -291,12 +291,13 @@ class TrojanDetector:
                     img = img.cuda()
 
                 out = model(img)
-                pred = out.max(1).indices
+                pred = out.cpu().max(1).indices
+                #pred = out.max(1).indices
                 # enable for testing PB
                 # print('INFO: test_loader.dataset.labels[', i, ']=', test_loader.dataset.labels[i])
                 # print('INFO: test_loader.filename[', i, ']=', test_loader.dataset.list_IDs[i])
                 # print('INFO: out:', out, ' pred:', pred[0], ' target:', target)
-                correct += (pred.cpu() == target).sum()
+                correct += (pred == target).sum()
                 total += len(target)
 
                 # enable for testing PB
@@ -306,6 +307,7 @@ class TrojanDetector:
                 #     fh.write("model prediction: {}, ".format(pred[0]))
                 #     fh.write("model predicted vector: {} \n ".format(out))
 
+            print('DEBUG: correct:', correct.numpy(), ' total:', total)
             return correct.numpy() / float(total)
 
     def prune_model(self):

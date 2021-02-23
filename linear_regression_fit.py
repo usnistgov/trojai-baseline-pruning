@@ -93,7 +93,17 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
     is_header_present = False
     if dataset_round >= 2:
         is_header_present = False
-        if number_of_pruned_models == 35:
+        if number_of_pruned_models == 55:
+            # nS = 55
+            column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
+                                45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66,
+                                67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 98]
+        elif number_of_pruned_models == 45:
+            # nS = 45
+            column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
+                                45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66,
+                                67, 68, 88]
+        elif number_of_pruned_models == 35:
             # nS = 35
             column_idx_array = [10, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
                                 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 78]
@@ -231,8 +241,33 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
         #df = pd.DataFrame(acc_table, columns=[my_str]) # This did not work !!!
         # X = df[my_input_var] This assignment did not work!!!
         # If you just want to use one variable for simple linear regression, then use X = df['Interest_Rate'] for example.Alternatively, you may add additional variables within the brackets
-
-        if number_of_pruned_models == 35:
+        if number_of_pruned_models == 55:
+            df = pd.DataFrame(acc_table,
+                              columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]', 'a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                                       'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]',
+                                       'a[19]','a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'a[25]', 'a[26]', 'a[27]',
+                                       'a[28]','a[29]','a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]', 'a[35]', 'a[36]',
+                                       'a[37]', 'a[38]','a[39]','a[40]', 'a[41]', 'a[42]', 'a[43]', 'a[44]', 'a[45]',
+                                       'a[46]', 'a[47]', 'a[48]','a[49]',
+                                       'a[50]', 'a[51]', 'a[52]', 'a[53]', 'a[54]','gt_model_label'])
+            X = df[['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]', 'a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                    'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
+                    'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
+                    'a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]', 'a[35]', 'a[36]', 'a[37]', 'a[38]', 'a[39]',
+                    'a[40]', 'a[41]', 'a[42]', 'a[43]', 'a[44]', 'a[45]', 'a[46]', 'a[47]', 'a[48]','a[49]',
+                    'a[50]', 'a[51]', 'a[52]', 'a[53]', 'a[54]']]
+        elif number_of_pruned_models == 45:
+            df = pd.DataFrame(acc_table,columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]','a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                    'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
+                                                 'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
+                                                 'a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]', 'a[35]', 'a[36]', 'a[37]', 'a[38]', 'a[39]',
+                                                 'a[40]', 'a[41]', 'a[42]', 'a[43]', 'a[44]','gt_model_label'])
+            X = df[['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]', 'a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
+                    'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
+                                                 'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]','a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
+                                                 'a[30]', 'a[31]', 'a[32]', 'a[33]', 'a[34]', 'a[35]', 'a[36]', 'a[37]', 'a[38]', 'a[39]',
+                                                 'a[40]', 'a[41]', 'a[42]', 'a[43]', 'a[44]']]
+        elif number_of_pruned_models == 35:
             df = pd.DataFrame(acc_table,columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]','a[5]', 'a[6]', 'a[7]', 'a[8]', 'a[9]',
                     'a[10]', 'a[11]', 'a[12]', 'a[13]', 'a[14]', 'a[15]', 'a[16]', 'a[17]', 'a[18]', 'a[19]',
                                                  'a[20]', 'a[21]', 'a[22]', 'a[23]', 'a[24]', 'a[25]', 'a[26]', 'a[27]', 'a[28]', 'a[29]',
@@ -313,6 +348,19 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
                                             a[11], a[12], a[13], a[14],a[15], a[16], a[17], a[18], a[19],a[20],
                                             a[21], a[22], a[23], a[24], a[25], a[26], a[27], a[28], a[29],a[30],
                                             a[31], a[32], a[33], a[34] ]])
+            elif number_of_pruned_models == 45:
+                predict_prob = regr.predict([[a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10],
+                                              a[11], a[12], a[13], a[14], a[15], a[16], a[17], a[18], a[19], a[20],
+                                              a[21], a[22], a[23], a[24], a[25], a[26], a[27], a[28], a[29], a[30],
+                                              a[31], a[32], a[33], a[34], a[35], a[36], a[37], a[38], a[39], a[40],
+                                              a[41], a[42], a[43], a[44]]])
+            elif number_of_pruned_models == 55:
+                predict_prob = regr.predict([[a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10],
+                                              a[11], a[12], a[13], a[14], a[15], a[16], a[17], a[18], a[19], a[20],
+                                              a[21], a[22], a[23], a[24], a[25], a[26], a[27], a[28], a[29], a[30],
+                                              a[31], a[32], a[33], a[34], a[35], a[36], a[37], a[38], a[39], a[40],
+                                              a[41], a[42], a[43], a[44], a[45], a[46], a[47], a[48], a[49], a[50],
+                                              a[51], a[52], a[53], a[54]]])
             else:
                 print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models)
                 continue
