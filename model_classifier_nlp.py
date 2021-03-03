@@ -82,8 +82,9 @@ class model_classifier:
         except:
             print("Unexpected loading error:", sys.exc_info()[0])
             # close the line
-            with open(self.scratch_filepath, 'a') as fh:
-                fh.write("\n")
+            # TODO: How to pass scratch_filepath here?
+            # with open(scratch_filepath, 'a') as fh:
+            #     fh.write("\n")
             raise
 
         #model_orig = torch.load(self.model_filepath, map_location=mydevice)

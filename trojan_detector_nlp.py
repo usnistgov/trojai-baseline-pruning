@@ -328,15 +328,10 @@ class TrojanDetectorNLP:
                         idx = int(np.argwhere(attn_mask[i, :] == 1)[-1])
                         emb_list.append(embedding_vector[i, idx, :])
                     embedding_vector = np.stack(emb_list, axis=0)
-                
-                if self.use_cuda:
-                    embedding_vector = embedding_vector.cpu()
-
-                embedding_vector = embedding_vector.numpy()
-
+                    
                 # reshape embedding vector to create batch size of 1
                 embedding_vector = np.expand_dims(embedding_vector, axis=0)
-
+                
             # embedding_vector is [1, 1, <embedding length>]
             embedding_vector = torch.from_numpy(embedding_vector)
 
