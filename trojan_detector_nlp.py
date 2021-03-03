@@ -315,9 +315,20 @@ class TrojanDetectorNLP:
                 # ignore all but the first embedding since this is sentiment classification
                 if self.cls_token_is_first:
                     embedding_vector = embedding_vector[:, 0, :]
+                    embedding_vector = embedding_vector.cpu().detach().numpy()
                 else:
-                    embedding_vector = embedding_vector[:, -1, :]
-
+                    embedding_vector = embedding_vector.cpu().detach().numpy()
+                    # for GPT-2 use last token as the text summary
+                    # https://github.com/huggingface/transformers/issues/3168
+                    # embedding_vector = embedding_vector[:, -1, :]
+                    # use the attention mask to select the last valid token per element in the batch
+                    attn_mask = attention_mask.detach().cpu().numpy()
+                    emb_list = list()
+                    for i in range(attn_mask.shape[0]):
+                        idx = int(np.argwhere(attn_mask[i, :] == 1)[-1])
+                        emb_list.append(embedding_vector[i, idx, :])
+                    embedding_vector = np.stack(emb_list, axis=0)
+                
                 if self.use_cuda:
                     embedding_vector = embedding_vector.cpu()
 
