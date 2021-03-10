@@ -192,7 +192,7 @@ def graph_extractor(model_dirpath, tokenizer_dirpath, embedding_dirpath,
         input_sample = []
         input_sample.append(example_filenames[0])
         #input_sample.append(example_filenames[1])
-        print('input_sample:', input_sample)
+        #print('input_sample:', input_sample)
 
         dataset = extended_dataset_nlp(input_sample, tokenizer, max_input_length,num_iterations=1)
         #dataset = extended_dataset_nlp(self.example_filenames, self.tokenizer, self.max_input_length, num_iterations=self.num_duplicate_data_iterations)
@@ -201,7 +201,7 @@ def graph_extractor(model_dirpath, tokenizer_dirpath, embedding_dirpath,
         use_amp = False
         input, embedding_vector = preprocess_data(dataset, use_cuda, use_amp, embedding, cls_token_is_first)
 
-        print('INFO: input:', input)
+        #print('INFO: input:', input)
 
         # Create a random image/batch
         # img = np.random.rand(1, 3, 224, 224)
@@ -226,48 +226,6 @@ def graph_extractor(model_dirpath, tokenizer_dirpath, embedding_dirpath,
 
 def preprocess_data(nlp_dataset, use_cuda, use_amp, embedding, cls_token_is_first):
     preprocessed_data = list()
-
-    # for i in range(len(nlp_dataset)):
-    #     # convert to embedding
-    #     input_ids, attention_mask, label = nlp_dataset[i]
-    #     device = 'cpu'
-    #     with torch.no_grad():
-    #         input_ids = input_ids.to(device)
-    #         attention_mask = attention_mask.to(device)
-    #
-    #         if use_amp:
-    #             with torch.cuda.amp.autocast():
-    #                 embedding_vector = embedding(input_ids, attention_mask=attention_mask)[0]
-    #         else:
-    #             embedding_vector = embedding(input_ids, attention_mask=attention_mask)[0]
-    #
-    #         # http://jalammar.github.io/a-visual-guide-to-using-bert-for-the-first-time/
-    #         # http://jalammar.github.io/illustrated-bert/
-    #         # https://datascience.stackexchange.com/questions/66207/what-is-purpose-of-the-cls-token-and-why-its-encoding-output-is-important/87352#87352
-    #         # ignore all but the first embedding since this is sentiment classification
-    #         if cls_token_is_first:
-    #             embedding_vector = embedding_vector[:, 0, :]
-    #         else:
-    #             # for GPT-2 use last token as the text summary
-    #             # https://github.com/huggingface/transformers/issues/3168
-    #             embedding_vector = embedding_vector[:, -1, :]
-    #
-    #         embedding_vector = embedding_vector.to('cpu')
-    #         embedding_vector = embedding_vector.numpy()
-    #
-    #         # reshape embedding vector to create batch size of 1
-    #         embedding_vector = np.expand_dims(embedding_vector, axis=0)
-    #         # embedding_vector is [1, 1, <embedding length>]
-    #         #adv_embedding_vector = copy.deepcopy(embedding_vector)
-    #
-    #     embedding_vector = torch.from_numpy(embedding_vector).to(device)
-    #
-    #     preprocessed_data.append({'embedding': embedding_vector, 'label': label})
-    #
-    # return preprocessed_data, embedding_vector
-
-
-
     for i in range(len(nlp_dataset)):
         input_ids, attention_mask, label = nlp_dataset[i]
 

@@ -16,9 +16,9 @@ import configargparse
 
 from model_classifier_nlp import model_classifier
 from extended_dataset_nlp import extended_dataset_nlp
-from remove_prune import prune_model
-from reset_prune import reset_prune_model
-from trim_prune import trim_model
+#from remove_prune import prune_model
+from reset_prune_nlp import reset_prune_model
+#from trim_prune import trim_model
 from linear_regression import read_regression_coefficients, linear_regression_prediction
 
 
@@ -438,17 +438,19 @@ class TrojanDetectorNLP:
 
             try:
                 if 'remove' in self.pruning_method:
-                    prune_model(model, self.model_architecture, output_transform, sample_shift, self.sampling_method,
-                                self.ranking_method,
-                                self.sampling_probability, self.num_samples)
+                    print("pruning method = remove is currently not supported")
+                    #prune_model(model, self.model_architecture, output_transform, sample_shift, self.sampling_method,
+                                # self.ranking_method,
+                                # self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
                     reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
                                       self.sampling_probability,
                                       self.num_samples)
                 if 'trim' in self.pruning_method:
-                    trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
-                               self.sampling_probability,
-                               self.num_samples, self.trim_pruned_amount)
+                    print("pruning method = trim is currently not supported")
+                    # trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
+                    #            self.sampling_probability,
+                    #            self.num_samples, self.trim_pruned_amount)
 
             except:
                 # this is relevant to PM=Remove because it fails for some configurations to prune the model correctly
