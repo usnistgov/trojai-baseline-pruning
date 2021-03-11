@@ -295,7 +295,7 @@ class TrojanDetectorNLP:
         preprocessed_data = list()
 
         for i in range(len(nlp_dataset)):
-            input_ids, attention_mask, label = nlp_dataset[i]
+            input_ids, attention_mask, label, ID = nlp_dataset[i]
 
             # Convert input into embedding and format to correct size
             with torch.no_grad():
@@ -338,7 +338,7 @@ class TrojanDetectorNLP:
             if self.use_cuda:
                 embedding_vector = embedding_vector.cuda()
 
-            preprocessed_data.append({'embedding': embedding_vector, 'label': label})
+            preprocessed_data.append({'embedding': embedding_vector, 'label': label, 'ID': ID})
 
         return preprocessed_data
 
@@ -354,12 +354,15 @@ class TrojanDetectorNLP:
         for data in preprocessed_data:
             embedding = data['embedding']
             label = data['label']
+            ID = data['ID']
 
             if self.use_amp:
                 with torch.cuda.amp.autocast():
                     logits = model(embedding).cpu().detach().numpy()
             else:
                 logits = model(embedding).cpu().detach().numpy()
+
+            print('ID = {}; logits = {}, {}'.format(ID, logits[0][0],  logits[0][1]))
 
             sentiment_pred = np.argmax(logits)
 
@@ -443,9 +446,10 @@ class TrojanDetectorNLP:
                                 # self.ranking_method,
                                 # self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
-                    reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
-                                      self.sampling_probability,
-                                      self.num_samples)
+                    print('none')
+#                    reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
+#                                      self.sampling_probability,
+#                                      self.num_samples)
                 if 'trim' in self.pruning_method:
                     print("pruning method = trim is currently not supported")
                     # trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
