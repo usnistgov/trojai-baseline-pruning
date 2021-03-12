@@ -271,7 +271,9 @@ class TrojanDetectorNLP:
                 self.trim_pruned_divisor / self.num_samples) / self.trim_pruned_divisor  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
         if 'reset' in self.pruning_method:
-            sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
+            sampling_probability = 0.5
+            print('SET sampling_probability:', sampling_probability)
+            #sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
 
         # adjustments per model type for remove method
         if 'remove' in self.pruning_method:
@@ -446,10 +448,10 @@ class TrojanDetectorNLP:
                                 # self.ranking_method,
                                 # self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
-                    print('none')
-#                    reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
-#                                      self.sampling_probability,
-#                                      self.num_samples)
+                    #print('none')
+                    reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
+                                      self.sampling_probability,
+                                      self.num_samples)
                 if 'trim' in self.pruning_method:
                     print("pruning method = trim is currently not supported")
                     # trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
