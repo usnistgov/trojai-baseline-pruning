@@ -63,19 +63,19 @@ def reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_
         num_layers = len(layer_to_prune.all_weights)
         print('num_layers:', num_layers)
         for layer_idx in range (0,num_layers):
-            num_groupsPerLayer = len(layer_to_prune.all_weights[layer_idx])
-            print('num_groupsPerLayer:', num_groupsPerLayer)
+            num_gatesPerLayer = len(layer_to_prune.all_weights[layer_idx])
+            print('weights for input, forget, cell, and output gates (num_gatesPerLayer):', num_gatesPerLayer)
             # weight = layer_to_prune.all_weights[0][0].detach().cpu().numpy()
-            for filter_idx in range(0, num_groupsPerLayer):
+            for gate_idx in range(0, 1):
                 # select a layer with conv
                 # if isinstance(layer_to_prune, nn.GRU):
                 if 'random' in sampling_method:
-                    num = reset_prune_random(layer_to_prune.all_weights[layer_idx][filter_idx], multiplier)
+                    num = reset_prune_random(layer_to_prune.all_weights[layer_idx][gate_idx], multiplier)
                 elif 'targeted' in sampling_method:
-                    num = reset_prune_targeted(sample_shift, layer_to_prune.all_weights[layer_idx][filter_idx],
+                    num = reset_prune_targeted(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx],
                                                multiplier, ranking_method, num_shifts)
                 elif 'uniform' in sampling_method:
-                    num = reset_prune_uniform(sample_shift, layer_to_prune.all_weights[layer_idx][filter_idx], multiplier, ranking_method, num_shifts)
+                    num = reset_prune_uniform(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx], multiplier, ranking_method, num_shifts)
                 else:
                     print('ERROR: unrecognized sampling method:', sampling_method)
                     num = 0

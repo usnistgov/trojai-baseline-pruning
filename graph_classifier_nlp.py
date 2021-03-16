@@ -227,7 +227,7 @@ def graph_extractor(model_dirpath, tokenizer_dirpath, embedding_dirpath,
 def preprocess_data(nlp_dataset, use_cuda, use_amp, embedding, cls_token_is_first):
     preprocessed_data = list()
     for i in range(len(nlp_dataset)):
-        input_ids, attention_mask, label = nlp_dataset[i]
+        input_ids, attention_mask, label, ID = nlp_dataset[i]
 
         # Convert input into embedding and format to correct size
         with torch.no_grad():
