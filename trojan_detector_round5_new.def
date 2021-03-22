@@ -3,17 +3,17 @@ From: pytorch/pytorch:latest
 
 %files
     ./trojan_detector_round5_new.py /
-    ./model_classifier_round2.py /
+    ./model_classifier_nlp.py /
     ./trojan_detector_nlp.py /
     ./extended_dataset_nlp.py /
     ./model_classifier_nlp.py /
     ./model_factories.py /
     ./linear_regression_fit.py /
     ./linear_regression.py /
-    ./reset_prune.py /
-    ./trim_prune.py /
-    ./remove_prune.py /
-    ./graph_classifier_round2.py /
+    ./reset_prune_nlp.py /
+    ./trim_prune_nlp.py /
+    ./remove_prune_nlp.py /
+    ./graph_classifier_nlp.py /
     ./torch_pruning /
     ./linear_regression_data /
     ./reference_data /

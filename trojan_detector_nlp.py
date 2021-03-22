@@ -9,16 +9,12 @@ import json
 import statistics
 from collections import OrderedDict
 import configargparse
-# from torchvision import transforms
-# import advertorch.attacks
-# import advertorch.context
-# import transformers
 
 from model_classifier_nlp import model_classifier
 from extended_dataset_nlp import extended_dataset_nlp
-#from remove_prune import prune_model
+from remove_prune_nlp import remove_prune_model
 from reset_prune_nlp import reset_prune_model
-#from trim_prune import trim_model
+from trim_prune_nlp import trim_prune_model
 from linear_regression import read_regression_coefficients, linear_regression_prediction
 
 
@@ -87,14 +83,15 @@ class TrojanDetectorNLP:
 
         # these values are computed from each architecture by 1/(min number of filters per layer) - rounded up at the second decimal
         # this guarantees that at least one filter is removed from each layer
-        # TODO: Update coef for 'LstmLinear', 'GruLinear', 'Linear'
+        # # TODO: Update coef for 'LstmLinear', 'GruLinear', 'Linear'
         self.min_one_filter = {"shufflenet1_0": 0.05, "shufflenet1_5": 0.05, "shufflenet2_0": 0.05,
                                "inceptionv1(googlenet)": 0.07, "inceptionv3": 0.04, "resnet18": 0.03,
                                "resnet34": 0.03, "resnet50": 0.03, "resnet101": 0.03, "resnet152": 0.03,
                                "wide_resnet50": 0.03, "wide_resnet101": 0.03,
                                "squeezenetv1_0": 0.21, "squeezenetv1_1": 0.15, "mobilenetv2": 0.07,
                                "densenet121": 0.04, "densenet161": 0.03, "densenet169": 0.04, "densenet201": 0.04,
-                               "vgg11_bn": 0.03, "vgg13_bn": 0.03, "vgg16_bn": 0.03}
+                               "vgg11_bn": 0.03, "vgg13_bn": 0.03, "vgg16_bn": 0.03,
+                               "GruLinear": 0.1, "LstmLinear": 0.1}
         # -------------------------------------------------------------------
         # NLP Setup ---------------------------------------------------------
         # -------------------------------------------------------------------
@@ -271,7 +268,7 @@ class TrojanDetectorNLP:
                 self.trim_pruned_divisor / self.num_samples) / self.trim_pruned_divisor  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
         if 'reset' in self.pruning_method:
-            sampling_probability = 0.1
+            sampling_probability = 0.3
             print('SET sampling_probability:', sampling_probability)
             #sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
 
@@ -364,7 +361,7 @@ class TrojanDetectorNLP:
             else:
                 logits = model(embedding).cpu().detach().numpy()
 
-            print('ID = {}; logits = {}, {}'.format(ID, logits[0][0],  logits[0][1]))
+            #print('ID = {}; logits = {}, {}'.format(ID, logits[0][0],  logits[0][1]))
 
             sentiment_pred = np.argmax(logits)
 
@@ -443,20 +440,17 @@ class TrojanDetectorNLP:
 
             try:
                 if 'remove' in self.pruning_method:
-                    print("pruning method = remove is currently not supported")
-                    #prune_model(model, self.model_architecture, output_transform, sample_shift, self.sampling_method,
-                                # self.ranking_method,
-                                # self.sampling_probability, self.num_samples)
+                    print("pruning method = remove is currently not supported because recursive graph pruning is not supported")
+                    # remove_prune_model(model, self.model_architecture, output_transform, sample_shift, self.sampling_method,
+                    #              self.ranking_method, self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
-                    #print('none')
                     reset_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
                                       self.sampling_probability,
                                       self.num_samples)
                 if 'trim' in self.pruning_method:
-                    print("pruning method = trim is currently not supported")
-                    # trim_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
-                    #            self.sampling_probability,
-                    #            self.num_samples, self.trim_pruned_amount)
+                    trim_prune_model(model, self.model_architecture, sample_shift, self.sampling_method, self.ranking_method,
+                               self.sampling_probability,
+                               self.num_samples, self.trim_pruned_amount)
 
             except:
                 # this is relevant to PM=Remove because it fails for some configurations to prune the model correctly
@@ -604,7 +598,7 @@ class TrojanDetectorNLP:
                             default='./model/clean_example_data')
         parser.add_argument('--pruning_method', type=str,
                             help='The pruning method to use (trim, reset, or remove)',
-                            default='reset')
+                            default='remove')
         parser.add_argument('--sampling_method', type=str,
                             help='The sampling method to use (random, targeted, or uniform)',
                             default='targeted')
