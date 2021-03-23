@@ -1,0 +1,42 @@
+Bootstrap: docker
+From: pytorch/pytorch:latest
+
+%files
+    ./trojan_detector_round6_new.py /
+    ./model_classifier_nlp.py /
+    ./trojan_detector_nlp_round6.py /
+    ./extended_dataset_nlp.py /
+    ./model_classifier_nlp.py /
+    ./model_factories.py /
+    ./linear_regression_fit.py /
+    ./linear_regression.py /
+    ./reset_prune_nlp.py /
+    ./trim_prune_nlp.py /
+    ./remove_prune_nlp.py /
+    ./graph_classifier_nlp.py /
+    ./torch_pruning /
+    ./linear_regression_data /
+    ./reference_data /
+    ./optimal_configurations /
+    ./config_files /
+
+%post
+    /opt/conda/bin/conda install scikit-image
+    /opt/conda/bin/conda install -y pytorch torchvision -c pytorch
+    pip install trojai
+    pip install ConfigArgParse
+
+%help
+    This is a reset-pruning based baseline approach to trojan detection in AI models
+
+%labels
+     Author peter.bajcsy@nist.gov
+     Version 1.1.0
+
+%runscript
+    exec python3 /trojan_detector_round6_new.py "$@"
+
+
+
+
+

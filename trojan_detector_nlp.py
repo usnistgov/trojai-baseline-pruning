@@ -268,7 +268,7 @@ class TrojanDetectorNLP:
                 self.trim_pruned_divisor / self.num_samples) / self.trim_pruned_divisor  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
         if 'reset' in self.pruning_method:
-            sampling_probability = 0.3
+            sampling_probability = 0.5
             print('SET sampling_probability:', sampling_probability)
             #sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
 
