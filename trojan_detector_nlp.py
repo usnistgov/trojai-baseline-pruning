@@ -668,6 +668,10 @@ class TrojanDetectorNLP:
         embedding_filepath = args.embedding_filepath
         cls_token_is_first = args.cls_token_is_first
         model_dirpath = os.path.dirname(args.model_filepath)
+        ## debig
+        print('embedding_filepath:', embedding_filepath)
+        print('tokenizer_filepath:', tokenizer_filepath)
+        print('model_dirpath:', model_dirpath)
 
         # If the tokenizer and embedding are not specified, then let's see if we can find them
         if not os.path.isfile(tokenizer_filepath) or not os.path.isfile(embedding_filepath):
@@ -681,6 +685,8 @@ class TrojanDetectorNLP:
 
                     embedding_directory = args.embedding_dirpath
                     tokenizer_directory = args.tokenizer_dirpath
+                    print('embedding_directory:', embedding_directory)
+                    print('tokenizer_directory:', tokenizer_directory)
 
                     if embedding_name == 'DistilBERT':
                         tokenizer_embedding_filename = 'DistilBERT-distilbert-base-uncased.pt'
@@ -697,18 +703,22 @@ class TrojanDetectorNLP:
 
                     if not os.path.isfile(embedding_filepath) and embedding_directory is not None:
                         embedding_filepath = os.path.join(embedding_directory, tokenizer_embedding_filename)
+                        print('embedding_filepath 2:', embedding_filepath)
                         if not os.path.isfile(embedding_filepath):
                             print('Unable to find embedding filepath: {}'.format(embedding_filepath))
                             sys.exit(2)
 
                     if not os.path.isfile(tokenizer_filepath) and tokenizer_directory is not None:
                         tokenizer_filepath = os.path.join(tokenizer_directory, tokenizer_embedding_filename)
+                        print('tokenizer_filepath 2:', tokenizer_filepath)
                         if not os.path.isfile(tokenizer_filepath):
                             print('Unable to find tokenizer filepath: {}'.format(tokenizer_filepath))
                             sys.exit(2)
             print('UPDATED PATHS: tokenizer: {} ; embedding: {}'.format(tokenizer_filepath, embedding_filepath))
 
         if not os.path.isfile(embedding_filepath) or not os.path.isfile(tokenizer_filepath):
+            print('embedding_filepath:', embedding_filepath)
+            print('tokenizer_filepath:', tokenizer_filepath)
             print('ERROR: Embedding filepath and tokenizer filepath is not defined: {}, {}'.format(embedding_filepath,
                                                                                             tokenizer_filepath))
             sys.exit(2)
