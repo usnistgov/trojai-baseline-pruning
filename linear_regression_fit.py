@@ -122,8 +122,16 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
             column_idx_array = [10, 24, 25, 26, 27, 28, 48] # for any run larger than 13
             #column_idx_array = [5, 17,18,19,20,21, 41] # for run 4, 5, and 6
         else:
-            print('ERROR: unsupported number of pruned accuracies:', number_of_pruned_models)
-            exit(-1)
+            print('INFO for round2 up: number of pruned accuracies differs from 5,10,15,25,35,45, and 55:', number_of_pruned_models)
+            column_idx_array = [10]
+            for colIdx in range(24,(24+number_of_pruned_models)):
+                column_idx_array.append(colIdx)
+
+            colIdx = 24 + number_of_pruned_models + 19 # avg execution time
+            column_idx_array.append(colIdx)
+            print (column_idx_array)
+            # print('ERROR: unsupported number of pruned accuracies:', number_of_pruned_models)
+            # exit(-1)
 
     if dataset_round == 1:
         if number_of_pruned_models == 35:
@@ -299,8 +307,30 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
             df = pd.DataFrame(acc_table,columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]','gt_model_label'])
             X = df[['a[0]','a[1]', 'a[2]', 'a[3]', 'a[4]']]
         else:
-            print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models )
-            exit(-1)
+            print('INFO: number of pruned accuracies differs from 5,10,15,25,35,45, and 55:',
+                  number_of_pruned_models)
+
+            column_elem_array = []
+            for colIdx in range(0, number_of_pruned_models):
+                colStr = 'a['+ str(colIdx) +']'
+                column_elem_array.append(colStr)
+
+            print('column_elem_array:', column_elem_array)
+            column_elem_array1 = column_elem_array.copy()
+
+            column_elem_array.append('gt_model_label')
+            # df = pd.DataFrame(acc_table, columns=['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]', 'gt_model_label'])
+            # print('df before:', df)
+            df = pd.DataFrame(acc_table, columns=column_elem_array)
+            #print('df after:', df)
+
+            # X = df[['a[0]', 'a[1]', 'a[2]', 'a[3]', 'a[4]']]
+            # print('X before:', X)
+            X = df[column_elem_array1]
+            #print('X after:', X)
+
+            # print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models )
+            # exit(-1)
 
         Y = df['gt_model_label']
 
@@ -362,8 +392,22 @@ def batch_process_dir(csv_dirpath, result_filepath, dataset_round, number_of_pru
                                               a[41], a[42], a[43], a[44], a[45], a[46], a[47], a[48], a[49], a[50],
                                               a[51], a[52], a[53], a[54]]])
             else:
-                print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models)
-                continue
+                print('INFO: predict_prob: number of pruned accuracies differs from 5,10,15,25,35,45, and 55:',
+                      number_of_pruned_models)
+
+                column_prob_array = []
+                for colIdx in range(0, number_of_pruned_models):
+                    column_prob_array.append(a[colIdx])
+
+                print('column_prob_array:', column_prob_array)
+
+                # predict_prob = regr.predict([[a[0], a[1], a[2], a[3], a[4],a[5],a[6]]])
+                # print('predict_prob before:', predict_prob)
+                predict_prob = regr.predict([ column_prob_array ])
+                print('predict_prob after:', predict_prob)
+
+                # print('ERROR: unsupported number_of_pruned_models:', number_of_pruned_models)
+                # continue
 
 
             print('Predicted model label: ',predict_prob, 'gt model label:', gt_label)
@@ -465,5 +509,5 @@ if __name__=='__main__':
     # --accuracies_dirpath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_LR --result_filepath C:\PeterB\Projects\TrojAI\python\trojai-pruning\scratch_r2\LR_results.csv
 
     dataset_round = 4
-    number_of_pruned_models = 45
+    number_of_pruned_models = 100
     batch_process_dir(args.accuracies_dirpath, args.result_filepath, dataset_round, number_of_pruned_models)
