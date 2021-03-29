@@ -4,6 +4,7 @@ From: pytorch/pytorch:latest
 %files
     ./trojan_detector_round6_new.py /
     ./model_classifier_nlp.py /
+    ./trojan_detector_nlp.py /
     ./extended_dataset_nlp.py /
     ./model_classifier_nlp.py /
     ./model_factories.py /
