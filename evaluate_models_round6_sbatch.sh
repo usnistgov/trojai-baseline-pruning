@@ -51,7 +51,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH
+			python ./trojan_detector_nlp.py --my-config ./config_files/round6.config --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
