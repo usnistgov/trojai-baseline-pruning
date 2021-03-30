@@ -28,7 +28,7 @@ This class is designed to reset nodes to zero in a graph defining an AI model
 def reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_method, probability, num_shifts):
     model.cpu()  # -- PB
     print('INFO: model_name ', model_name)
-    print('model.modules():', model.modules())
+    #print('model.modules():', model.modules())
     print('model:', model)
 
     #######################################
@@ -42,12 +42,12 @@ def reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_
 
     for layer_to_prune in prunable_modules:
         num_layers = len(layer_to_prune.all_weights)
-        print('num_layers:', num_layers)
+        #print('num_layers:', num_layers)
         for layer_idx in range (0,num_layers):
             num_gatesPerLayer = len(layer_to_prune.all_weights[layer_idx])
             # LSTM: input, forget, cell, and output gates
             # GRU:  reset, update, and new gates
-            print('weights for input, forget, cell, and output gates (num_gatesPerLayer):', num_gatesPerLayer)
+            # print('weights for input, forget, cell, and output gates (num_gatesPerLayer):', num_gatesPerLayer)
             # weight = layer_to_prune.all_weights[0][0].detach().cpu().numpy()
             for gate_idx in range(0, num_gatesPerLayer):
                 # select a layer with conv

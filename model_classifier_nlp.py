@@ -33,6 +33,22 @@ EMBEDDING_FLAVOR_LEVELS['GPT-2'] = ['gpt2']
 EMBEDDING_FLAVOR_LEVELS['DistilBERT'] = ['distilbert-base-uncased']
 
 It was designed for TrojAI Round 5 Challenge datasets consisting of 3 AI architectures
+
+GruLinearModel(
+  (rnn): GRU(768, 256, num_layers=2, batch_first=True, dropout=0.1, bidirectional=True)
+  (linear): Linear(in_features=512, out_features=2, bias=True)
+  (dropout): Dropout(p=0.1, inplace=False)
+)
+LstmLinearModel(
+  (rnn): LSTM(768, 256, num_layers=2, batch_first=True, dropout=0.1, bidirectional=True)
+  (linear): Linear(in_features=512, out_features=2, bias=True)
+  (dropout): Dropout(p=0.1, inplace=False)
+)
+model: LstmLinearModel(
+  (rnn): LSTM(768, 512, num_layers=4, batch_first=True, dropout=0.1)
+  (linear): Linear(in_features=512, out_features=2, bias=True)
+  (dropout): Dropout(p=0.1, inplace=False)
+)
 """
 
 

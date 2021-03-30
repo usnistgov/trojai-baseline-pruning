@@ -69,6 +69,10 @@ class extended_dataset_nlp(torch.utils.data.Dataset):
             text = fh.read()
 
         results = self.tokenizer(text, max_length=self.max_input_length - 2, padding=True, truncation=True, return_tensors='pt')
+
+        # if self.transform is not None:
+        #     results = self.transform(results)
+
         y = self.labels[index]
 
         return results.data['input_ids'], results.data['attention_mask'], y, ID
