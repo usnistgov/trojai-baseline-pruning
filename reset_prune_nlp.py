@@ -18,6 +18,7 @@ import transformers.models as tm
 import random
 import numpy as np
 
+
 """
 This class is designed to reset nodes to zero in a graph defining an AI model 
 (input, forget, cell, and output gates for round 5 - GRU and LSTM architectures).

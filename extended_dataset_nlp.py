@@ -17,6 +17,8 @@ import torch
 from skimage import io, transform
 from itertools import repeat
 
+from nltk.corpus import wordnet
+import random
 
 """
 This class supports creating datasets in PyTorch
@@ -53,6 +55,7 @@ class extended_dataset_nlp(torch.utils.data.Dataset):
       self.list_IDs = all_filenames
       self.tokenizer = tokenizer
       self.max_input_length = max_input_length
+      self.num_iterations = num_iterations
       print('Total length = {}'.format(len(self.list_IDs)))
 
   def __len__(self):
@@ -68,11 +71,89 @@ class extended_dataset_nlp(torch.utils.data.Dataset):
         with open(ID, 'r') as fh:
             text = fh.read()
 
+        print('text before:', text)
+        flagAntonym = False
+        flagReplacement = False
+        if self.num_iterations > 1:
+            words = text.split()
+            # remove commas or periods at the end of some words
+            # they cannot be removed because the periods or commas could be triggers and the assembly would have to change
+            # for i in range(len(words)):
+            #     if words[i].endswith(',') or words[i].endswith('.'):
+            #         words[i] = words[i][:-1]
+
+            #print('words', words)
+            max_length_word = len(max(words))
+            flagReplacement = True
+
+            # choose whether synonyms or antonyms are replaced
+            selection = random.randint(0,1)
+            if selection == 0:
+                flagAntonym = True
+                countAntonyms = 0
+                max_length_word = max_length_word - 2 # consider more words in order to avoid zero countAntonyms
+            else:
+                flagAntonym = False
+                countSynonyms = 0
+
+            #print('max_legth_words', max_length_word)
+            # print('flagAntonym:', str(flagAntonym))
+            # print('flagSynonym:', str(flagSynonym))
+
+            for i in range(len(words)):
+                if len(words[i]) >= max_length_word:
+                    #print('selected word:', words[i])
+                    antonyms = []
+                    synonyms = []
+                    for syn in wordnet.synsets(words[i]):
+                        for l in syn.lemmas():
+                            # include only synonyms that are distinct!
+                            if words[i] not in l.name():
+                                synonyms.append(l.name())
+                            if l.antonyms():
+                                antonyms.append(l.antonyms()[0].name())
+
+                    if flagAntonym and len(antonyms) > 0:
+                        # replace antonyms
+                        idx = random.randint(0, len(antonyms)-1)
+                        words[i] = antonyms[idx]
+                        countAntonyms += 1
+                        #print('replaced antonym:', words[i])
+
+                    if not flagAntonym:
+                        # replace synonyms
+                        if len(synonyms) > 0:
+                            flagSynonym = True
+                            idx = random.randint(0, len(synonyms)-1)
+                            words[i] = synonyms[idx]
+                            countSynonyms += 1
+                            #print('replaced synonym:', words[i])
+
+            # re-assemble the sentence
+            text = ''
+            for i in range(len(words)):
+                text += words[i] +' '
+
+        if flagAntonym:
+            print('replaced antonyms - count:', countAntonyms)
+        else:
+            print('replaced synonyms - count:', countSynonyms)
+        print('text after:', text)
+
         results = self.tokenizer(text, max_length=self.max_input_length - 2, padding=True, truncation=True, return_tensors='pt')
 
         # if self.transform is not None:
         #     results = self.transform(results)
 
         y = self.labels[index]
+
+        # flip the label if iterations > 1, antonyms replaced words and the count is larger than zero
+        if flagReplacement and flagAntonym and countAntonyms > 0:
+            #print('label before:', y)
+            if y == 0:
+                y = 1
+            else:
+                y = 0
+            #print('label after:', y)
 
         return results.data['input_ids'], results.data['attention_mask'], y, ID
