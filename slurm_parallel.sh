@@ -1,5 +1,5 @@
 #!/bin/bash
-for nS in 250 500 750
+for nS in 250 350 450 550
 do
   for nD in 100
   do

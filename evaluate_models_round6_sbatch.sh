@@ -9,7 +9,7 @@
 printf -v numStr "%08d" ${1}
 echo "id-$numStr"
 source /apps/anaconda3/etc/profile.d/conda.sh
-conda activate r6venv
+conda activate r6env
 
 NUM_SAMPLES=$1
 NUM_IMAGES=$2
@@ -51,7 +51,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 10
+			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 22
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
