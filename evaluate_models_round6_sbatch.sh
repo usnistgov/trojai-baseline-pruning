@@ -20,9 +20,9 @@ PRUNING_METHOD=$3
 #MODEL_DIR=$3
 
 #MODEL_DIR=/home/pnb/raid1/trojai/datasets/round6/round6-train-dataset
-MODEL_DIR=/wrk/pnb/trojai_data/round6/round6-train-dataset/models
-EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round6/round6-train-dataset/embeddings
-TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round6/round6-train-dataset/tokenizers
+MODEL_DIR=/wrk/pnb/trojai_data/round6/round6-test-dataset/models
+EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round6/round6-test-dataset/embeddings
+TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round6/round6-test-dataset/tokenizers
 
 #ACTIVE_DIR=/home/trojai/active
 
@@ -51,7 +51,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 22
+			python ./trojan_detector_nlp.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --embedding_dirpath $EMBEDDING_DIRPATH --tokenizer_dirpath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 10
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
