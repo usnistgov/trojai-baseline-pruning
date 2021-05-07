@@ -23,8 +23,12 @@ From: pytorch/pytorch:latest
 %post
     /opt/conda/bin/conda install scikit-image
     /opt/conda/bin/conda install -y pytorch torchvision -c pytorch
+    pip install jsonpickle
     pip install trojai
     pip install ConfigArgParse
+    mkdir /usr/share/nltk_data
+    pip install --user -U nltk
+    python -m nltk.downloader all
 
 %help
     This is a reset-pruning based baseline approach to trojan detection in AI models
