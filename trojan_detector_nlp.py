@@ -246,8 +246,9 @@ class TrojanDetectorNLP:
         print('number of sentiment_text available for eval per model:', num_images_avail)
 
         if num_images_avail < self.num_images_used:
+            print('WARNING - corrected: ', num_images_avail, ' is less than ', self.num_images_used)
             self.num_images_used = num_images_avail
-            print('WARNING: ', num_images_avail, ' is less than ', self.num_images_used)
+
 
         step = num_images_avail // self.num_images_used
         temp_idx = []

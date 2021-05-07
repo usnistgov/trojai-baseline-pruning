@@ -158,7 +158,7 @@ class model_classifier:
         self.model_type = model_type
         self.min_model_size_delta = min_model_size_delta
 
-        print('classified the model based on model_type as:\t', a.switch_architecture(model_type))
+        #print('classified the model based on model_type as:\t', a.switch_architecture(model_type))
         return size, model_type, min_model_size_delta
 
 

@@ -134,11 +134,11 @@ class extended_dataset_nlp(torch.utils.data.Dataset):
             for i in range(len(words)):
                 text += words[i] +' '
 
-        #if flagAntonym:
+        # if flagAntonym:
         #    print('replaced antonyms - count:', countAntonyms)
-        #else:
+        # else:
         #    print('replaced synonyms - count:', countSynonyms)
-        #print('text after:', text)
+        # print('text after:', text)
 
         results = self.tokenizer(text, max_length=self.max_input_length - 2, padding=True, truncation=True, return_tensors='pt')
 
