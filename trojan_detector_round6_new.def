@@ -24,7 +24,7 @@ From: pytorch/pytorch:latest
     /opt/conda/bin/conda install scikit-image
     /opt/conda/bin/conda install -y pytorch torchvision -c pytorch
     pip install jsonpickle
-    pip install trojai
+    pip install trojai==0.2.18
     pip install ConfigArgParse
     mkdir /usr/share/nltk_data
     pip install --user -U nltk
