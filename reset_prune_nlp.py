@@ -30,10 +30,10 @@ def reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_
     model.cpu()  # -- PB
     print('INFO: model_name ', model_name)
     #print('model.modules():', model.modules())
-    print('model:', model)
+    #print('model:', model)
 
     #######################################
-    prunable_module_type = (nn.GRU, nn.LSTM)
+    prunable_module_type = (nn.GRU, nn.LSTM, nn.Linear)
 
     prunable_modules = [m for m in model.modules() if isinstance(m, prunable_module_type)]
 
@@ -42,29 +42,47 @@ def reset_prune_model(model, model_name, sample_shift, sampling_method, ranking_
     multiplier = probability  # prune_probs[0]
 
     for layer_to_prune in prunable_modules:
-        num_layers = len(layer_to_prune.all_weights)
+        if isinstance(layer_to_prune,  nn.Linear):
+            num_layers = len(layer_to_prune.weight)
+        else:
+            num_layers = len(layer_to_prune.all_weights)
+
         #print('num_layers:', num_layers)
         for layer_idx in range (0,num_layers):
-            num_gatesPerLayer = len(layer_to_prune.all_weights[layer_idx])
-            # LSTM: input, forget, cell, and output gates
-            # GRU:  reset, update, and new gates
-            # print('weights for input, forget, cell, and output gates (num_gatesPerLayer):', num_gatesPerLayer)
-            # weight = layer_to_prune.all_weights[0][0].detach().cpu().numpy()
-            for gate_idx in range(0, num_gatesPerLayer):
-                # select a layer with conv
-                # if isinstance(layer_to_prune, nn.GRU):
+            if isinstance(layer_to_prune,  nn.Linear):
+                num_gatesPerLayer = len(layer_to_prune.weight[layer_idx])
                 if 'random' in sampling_method:
-                    num = reset_prune_random(layer_to_prune.all_weights[layer_idx][gate_idx], multiplier)
+                    num = reset_prune_random(layer_to_prune.weight[layer_idx], multiplier)
                 elif 'targeted' in sampling_method:
-                    num = reset_prune_targeted(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx],
-                                               multiplier, ranking_method, num_shifts)
+                    num = reset_prune_targeted(sample_shift, layer_to_prune.weight[layer_idx],multiplier, ranking_method, num_shifts)
                 elif 'uniform' in sampling_method:
-                    num = reset_prune_uniform(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx], multiplier, ranking_method, num_shifts)
+                     num = reset_prune_uniform(sample_shift, layer_to_prune.weight[layer_idx], multiplier, ranking_method, num_shifts)
                 else:
-                    print('ERROR: unrecognized sampling method:', sampling_method)
+                    print('ERROR: unrecognized sampling method for nn.Linear:', sampling_method)
                     num = 0
-                num_conv_pruned += num
-                num_blocks += 1
+            else:
+                num_gatesPerLayer = len(layer_to_prune.all_weights[layer_idx])
+                # LSTM: input, forget, cell, and output gates
+                # GRU:  reset, update, and new gates
+                # print('weights for input, forget, cell, and output gates (num_gatesPerLayer):', num_gatesPerLayer)
+                # weight = layer_to_prune.all_weights[0][0].detach().cpu().numpy()
+                for gate_idx in range(0, num_gatesPerLayer):
+                    # select a layer with conv
+                    # if isinstance(layer_to_prune, nn.GRU):
+                    if 'random' in sampling_method:
+                        num = reset_prune_random(layer_to_prune.all_weights[layer_idx][gate_idx], multiplier)
+                    elif 'targeted' in sampling_method:
+                        num = reset_prune_targeted(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx],
+                                                       multiplier, ranking_method, num_shifts)
+                    elif 'uniform' in sampling_method:
+                        num = reset_prune_uniform(sample_shift, layer_to_prune.all_weights[layer_idx][gate_idx],
+                                                      multiplier, ranking_method, num_shifts)
+                    else:
+                        print('ERROR: unrecognized sampling method:', sampling_method)
+                        num = 0
+
+            num_conv_pruned += num
+            num_blocks += 1
 
     print('num_blocks:', num_blocks)
     print('num_conv_pruned:', num_conv_pruned)

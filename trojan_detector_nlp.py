@@ -83,7 +83,7 @@ class TrojanDetectorNLP:
 
         # these values are computed from each architecture by 1/(min number of filters per layer) - rounded up at the second decimal
         # this guarantees that at least one filter is removed from each layer
-        # # TODO: Update coef for 'LstmLinear', 'GruLinear', 'Linear'
+        # # TODO: Update coef for 'LstmLinear', 'GruLinear', 'Linear', 'FCLinear'
         self.min_one_filter = {"shufflenet1_0": 0.05, "shufflenet1_5": 0.05, "shufflenet2_0": 0.05,
                                "inceptionv1(googlenet)": 0.07, "inceptionv3": 0.04, "resnet18": 0.03,
                                "resnet34": 0.03, "resnet50": 0.03, "resnet101": 0.03, "resnet152": 0.03,
@@ -91,7 +91,7 @@ class TrojanDetectorNLP:
                                "squeezenetv1_0": 0.21, "squeezenetv1_1": 0.15, "mobilenetv2": 0.07,
                                "densenet121": 0.04, "densenet161": 0.03, "densenet169": 0.04, "densenet201": 0.04,
                                "vgg11_bn": 0.03, "vgg13_bn": 0.03, "vgg16_bn": 0.03,
-                               "GruLinear": 0.1, "LstmLinear": 0.1}
+                               "GruLinear": 0.1, "LstmLinear": 0.1, "Linear": 0.1, "FCLinear": 0.1}
         # -------------------------------------------------------------------
         # NLP Setup ---------------------------------------------------------
         # -------------------------------------------------------------------
@@ -156,6 +156,7 @@ class TrojanDetectorNLP:
 
         if os.path.isfile(self.linear_regression_filepath):
             self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_architecture)
+            print('loaded pre-computed linear regression coefficients; number of coeff:', len(self.trained_coef ))
         else:
             self.trained_coef = None
 
@@ -257,6 +258,8 @@ class TrojanDetectorNLP:
                 temp_idx.append(i)
 
         example_filenames = [self.example_filenames[i] for i in temp_idx]
+
+        print('returning: len(example_filenames): ', len(example_filenames))
 
         return example_filenames
 

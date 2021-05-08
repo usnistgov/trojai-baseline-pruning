@@ -84,7 +84,7 @@ def read_regression_coefficients(linear_regression_filepath, target_model_name )
                         if 'architecture' in elem.lower():
                             architecture_name_index = col
 
-                        if elem.startswith('b') and len(elem) < 4: # support for nS<99
+                        if elem.startswith('b') and len(elem) < 6: # TODO Be aware of the support for nS<9999 !!!!!!
                             if flag:
                                 start = col
                                 flag = False

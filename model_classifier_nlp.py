@@ -61,13 +61,15 @@ class model_classifier:
     lstm_linear_model_size = float(14.72431262)  # id-0 (poisoned): LstmLinear 14,724,241 bytes, "embedding": "GPT-2",
     linear_model_size = float(0.008001016)  # id-01 (clean): Linear 8,001 bytes, "embedding": "DistilBERT",
     gru_linear_size = float(11.04610831)  # id-02 (poisoned): GruLinear 11,046,033 bytes, "embedding": "BERT",
+    # round 6
+    FCLinear_model_size =float(4.739072) # id-08 (clean): FCLinear 4,739,072 bytes, "embedding": "GPT-2-gpt2.pt",
 
-    # TODO: Add NLP model names as needed 'LstmLinear', 'GruLinear', 'Linear'
-    MODEL_ARCHITECTURES = ['LstmLinearModel', 'GruLinearModel', 'LinearModel']
-    NUMBER_OF_TYPES_PER_ARCH = [1, 1, 1]
-    # MODEL_NAMES = ['LstmLinear', 'GruLinear', 'Linear']
-    MODEL_REF_SIZES = [lstm_linear_model_size, gru_linear_size, linear_model_size]
-    MODEL_SIZE_STDEV = [0.000127959, 1.28037E-07, 0.000128203]
+    # TODO: Add NLP model names as needed 'LstmLinear', 'GruLinear', 'Linear', 'FCLinear'
+    MODEL_ARCHITECTURES = ['LstmLinearModel', 'GruLinearModel', 'LinearModel', 'FCLinear']
+    NUMBER_OF_TYPES_PER_ARCH = [1, 1, 1, 1]
+    # MODEL_NAMES = ['LstmLinear', 'GruLinear', 'Linear', 'FCLinear']
+    MODEL_REF_SIZES = [lstm_linear_model_size, gru_linear_size, linear_model_size, FCLinear_model_size]
+    MODEL_SIZE_STDEV = [0.000127959, 1.28037E-07, 0.000128203, 0.1]
 
     model_filepath = ''
     model_size = 0
