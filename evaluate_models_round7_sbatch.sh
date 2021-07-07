@@ -19,8 +19,8 @@ PRUNING_METHOD=$3
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
-MODEL_DIR=/home/pnb/raid1/trojai/datasets/round7/round7-train-dataset
-#MODEL_DIR=/wrk/pnb/trojai_data/round7/round7-test-dataset/models
+#MODEL_DIR=/home/pnb/raid1/trojai/datasets/round7/round7-train-dataset
+MODEL_DIR=/wrk/pnb/trojai_data/round7/round7-train-dataset/models
 #EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round7/round7-test-dataset/embeddings
 TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round7/round7-train-dataset/tokenizers
 
