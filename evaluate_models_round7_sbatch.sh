@@ -9,7 +9,7 @@
 printf -v numStr "%08d" ${1}
 echo "id-$numStr"
 source /apps/anaconda3/etc/profile.d/conda.sh
-conda activate r7env
+conda activate r7venv
 
 NUM_SAMPLES=$1
 NUM_IMAGES=$2
@@ -19,10 +19,10 @@ PRUNING_METHOD=$3
 #QUEUE_NAME=$2
 #MODEL_DIR=$3
 
-#MODEL_DIR=/home/pnb/raid1/trojai/datasets/round7/round7-train-dataset
-MODEL_DIR=/wrk/pnb/trojai_data/round7/round7-test-dataset/models
+MODEL_DIR=/home/pnb/raid1/trojai/datasets/round7/round7-train-dataset
+#MODEL_DIR=/wrk/pnb/trojai_data/round7/round7-test-dataset/models
 #EMBEDDING_DIRPATH=/wrk/pnb/trojai_data/round7/round7-test-dataset/embeddings
-TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round7/round7-test-dataset/tokenizers
+TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round7/round7-train-dataset/tokenizers
 
 #ACTIVE_DIR=/home/trojai/active
 
@@ -51,7 +51,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_ner.py --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --tokenizer_filepath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 1
+			python ./trojan_detector_ner.py --my-config ./config_files/round7.config --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --tokenizer_filepath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 1
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then
