@@ -2,7 +2,7 @@
 
 ## Goal
 This code is for classifying convolutional neural network (CNN) models into those trained with Trojans (TwT) and those trained without Trojans (TwoT).
-It is based on Rounds 1, 2, 3, and 4 TrojAI Challenge datasets posted at [URL](https://pages.nist.gov/trojai/docs/data.html#).
+It is based on Rounds 1, 2, 3, 4, 5, 6, and 7 TrojAI Challenge datasets posted at [URL](https://pages.nist.gov/trojai/docs/data.html#).
 
 ## Method description
 ```
@@ -29,7 +29,7 @@ Probability of the input CNN model being trained with Trojan (being poisoned)
 Follow the installation of conda at [URL](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
 ```sh
-conda create -n env_2 python=3.4
+conda create -n my_env python=3.4
 ```
 
 ```sh
@@ -37,42 +37,48 @@ conda env list
 ```
 
 ```sh
-conda activate env_2
+conda activate my_env
 ```
 
 ```sh
 pip install -r requirements.txt
 ```
 
-Note: The file 'requirements.txt' defines the minimum installation requirements. The file was
+Note 1: The file 'requirements.txt' defines the minimum installation requirements for Round 1 and Round 2. The file was
 created on Windows OS, but the requirements extracted on Linux Ubuntu OS 
 have additional OS specific libraries. The key libraries are torch==1.5.0+cpu and torchvision==0.6.0+cpu.
 
+Note 2: Additional installation requirement files are named:
+requirements_cv_r3.txt, requirements_cv_r4.txt, requirements_nlp_r5.txt, requirements_nlp_r6.txt, and requirements_ner_r7.txt.
+ 
 ## Execution
 The execution consists of three steps:
 
 1. extract accuracy measurements over all pruned model version
 from all available models by running 
-trojan_detector.py (Round 1), trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3), or 
-trojan_detector_round4.py (Round 4)
+trojan_detector.py (Round 1), trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3), 
+trojan_detector_round4.py (Round 4), trojan_detector_round5_new.py (Round 5), trojan_detector_round6_new.py (Round 6), or trojan_detector_round7_new.py (Round 7).
     * The six execution parameters are set in these main classes
     * This step includes estimating the CNN model architecture using 
-    model_classifier.py (Round 1) or model_classifier_round2.py (Round 2, 3, and 4) against
+    model_classifier.py (Round 1), model_classifier_round2.py (Round 2, 3, and 4),
+    model_classifier_nlp.py (Round 5 and 6) and model_classifier_ner.py (Round 7) 
+     against
     the reference architectures file sizes and graphs provided in reference_data folder
 2. estimate multiple linear regression coefficients from the extracted accuracy
-measurements and ground truth labels provided for Round 1, 2, 3, and 4 data sets by 
+measurements and ground truth labels provided for Round 1, 2, 3, 4, 5, 6, and 7 data sets by 
 running linear_regression_fit.py
     * Example files are provided in linear_regression_data folder
 3. compute probability of a CNN model being trained with trojan by running 
 trojan_detector.py (Round 1) or trojan_detector_roundX.py (where X stands for 
-Round 2, 3 or 4) with the estimated linear regression coefficients handled in linear_regression.py
+Round 2, 3, 4, 5, 6, or 7) with the estimated linear regression coefficients handled in linear_regression.py
     * The final probability value is saved in a file defined by --result_filepath argument
 
 The main classes for trojan detection are in trojan_detector.py (Round 1), 
- trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3), and
-trojan_detector_round4.py (Round 4). They follow the arguments required 
+ trojan_detector_round2.py (Round 2), trojan_detector_round3.py (Round 3),
+trojan_detector_round4.py (Round 4), trojan_detector_round5_new.py (Round 5), trojan_detector_round6_new.py (Round 6), 
+and trojan_detector_round7_new.py (Round 7). They follow the arguments required 
 by the TrojAI challenge. 
-They are designed to take one trained AI model and output the probability of the CNN model being trained with trojan.
+They are designed to take one trained AI model and output the probability of the AI model being trained with trojan.
 
 **Example:**
 
@@ -94,7 +100,7 @@ python3 ./trojan_detector_round4.py --model_filepath ./trojai/datasets/round4/id
 
 One can execute the trojan detection on a folder containing many AI models with example images
  by using the classes my_folder.py (Round 1) and my_folder_round2.py (Round 2). It is recommended 
- to configure and execute shell scripts evaluate_models.sh (Round 1) and evaluate_models_roundX.sh (Rounds 2, 3, and 4)
+ to configure and execute shell scripts evaluate_models.sh (Round 1) and evaluate_models_roundX.sh (Rounds 2, 3, 4, 5, 6, and 7)
  when processing a large number of models at once. 
  The execution assumes certain organization of files in folders.
  
@@ -127,12 +133,13 @@ The code supports multiple configurations of pruning:
 - Pruning Method: Remove, Reset, and Trim 
 - Sampling Method: Random, Uniform, and Targeted
 - Ranking Method: L1, L2, L_infinity, and Stdev
-- Number of images used: nD (used for evaluating accuracy of pruned models)
+- Number of images/examples used: nD (used for evaluating accuracy of pruned models)
 - Number of samples: nS (i.e., pruned models to be evaluated)
 - Sampling proportion: p (proportion of filters to be removed in each layer)
 
-**Note 1:** The current implementation removes conv2D and batch normalization modules 
-in each layer. The configurations are set in the main trojan detection classes.
+**Note 1:** The current implementation removes {conv2D, batch normalization} modules 
+in each layer for Round 1-4, {GRU, LSTM, Linear} modules for Rounds 5 and 6, 
+and {Linear} module for Round 7. The configurations are set in the main trojan detection classes.
 
 **Note 2:** The execution does not require GPU.
 

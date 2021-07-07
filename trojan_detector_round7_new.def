@@ -1,0 +1,39 @@
+Bootstrap: docker
+From: pytorch/pytorch:latest
+
+%files
+    ./trojan_detector_round7_new.py /
+    ./model_classifier_ner.py /
+    ./trojan_detector_ner.py /
+    ./extended_dataset_ner.py /
+    ./model_classifier_ner.py /
+    ./model_factories.py /
+    ./linear_regression_fit.py /
+    ./linear_regression.py /
+    ./reset_prune_ner.py /
+    ./trim_prune_ner.py /
+    ./graph_classifier_ner.py /
+    ./linear_regression_data /
+    ./reference_data /
+    ./optimal_configurations /
+    ./config_files /
+
+%post
+    pip install jsonpickle
+    pip install trojai==0.2.23
+    pip install ConfigArgParse
+
+%help
+    This is a reset-pruning based baseline approach to trojan detection in AI models
+
+%labels
+     Author peter.bajcsy@nist.gov
+     Version 1.1.0
+
+%runscript
+    exec python3 /trojan_detector_round7_new.py "$@"
+
+
+
+
+
