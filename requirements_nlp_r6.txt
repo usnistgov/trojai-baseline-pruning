@@ -73,6 +73,6 @@ tqdm==4.48.2
 transformers==4.2.1
 trojai==0.2.14
 typing-extensions @ file:///home/ktietz/src/ci_mi/typing_extensions_1612808209620/work
-urllib3==1.25.10
+urllib3==1.26.5
 Wand==0.6.6
 Werkzeug==1.0.1

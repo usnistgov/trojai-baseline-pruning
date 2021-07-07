@@ -80,7 +80,7 @@ transformers==3.4.0
 -e git+https://gitlab.nist.gov/gitlab/mmajursk/trojai.git@72f8d0cc98ac3389b86c9674fba9428f5fb68525#egg=trojai&subdirectory=src/round3-datagen/trojai
 -e git+https://gitlab.nist.gov/gitlab/mmajursk/trojai.git@72f8d0cc98ac3389b86c9674fba9428f5fb68525#egg=trojai_private&subdirectory=src/round3-datagen/trojai_private
 typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1598376058250/work
-urllib3==1.25.11
+urllib3==1.26.5
 Wand==0.5.9
 wasabi==0.8.0
 Werkzeug==1.0.1
