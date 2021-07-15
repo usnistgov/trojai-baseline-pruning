@@ -1,17 +1,3 @@
-"""
-Disclaimer
-This software was developed by employees of the National Institute of Standards and Technology (NIST), an agency of the Federal Government and is being made available as a public service. Pursuant to title 17 United States Code Section 105, works of NIST employees are not subject to copyright protection in the United States.  This software may be subject to foreign copyright.  Permission in the United States and in foreign countries, to the extent that NIST may hold copyright, to use, copy, modify, create derivative works, and distribute this software and its documentation without fee is hereby granted on a non-exclusive basis, provided that this notice and disclaimer of warranty appears in all copies.
-THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT ANY WARRANTY OF ANY KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, ANY WARRANTY THAT THE SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND FREEDOM FROM INFRINGEMENT, AND ANY WARRANTY THAT THE DOCUMENTATION WILL CONFORM TO THE SOFTWARE, OR ANY WARRANTY THAT THE SOFTWARE WILL BE ERROR FREE.  IN NO EVENT SHALL NIST BE LIABLE FOR ANY DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES, ARISING OUT OF, RESULTING FROM, OR IN ANY WAY CONNECTED WITH THIS SOFTWARE, WHETHER OR NOT BASED UPON WARRANTY, CONTRACT, TORT, OR OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED BY PERSONS OR PROPERTY OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR SERVICES PROVIDED HEREUNDER.
-"""
-__author__ = "Peter Bajcsy"
-__copyright__ = "Copyright 2020, The IARPA funded TrojAI project"
-__credits__ = ["Michael Majurski", "Tim Blattner", "Derek Juba", "Walid Keyrouz"]
-__license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Peter Bajcsy"
-__email__ = "peter.bajcsy@nist.gov"
-__status__ = "Research"
-
 import torch
 import os
 import csv
@@ -29,6 +15,7 @@ import psutil
 
 from model_classifier_ner import model_classifier
 from extended_dataset_ner import extended_dataset_ner
+#from remove_prune_ner import remove_prune_model
 from reset_prune_ner import reset_prune_model
 from trim_prune_ner import trim_prune_model
 from linear_regression import read_regression_coefficients, linear_regression_prediction
@@ -321,7 +308,8 @@ class TrojanDetectorNER:
     # The function will gather the image file names from the examples directory, that are available for each model
     def _configure_example_filenames(self):
         self.example_filenames = [os.path.join(self.examples_dirpath, fn) for fn in os.listdir(self.examples_dirpath) if
-                                  fn.endswith(self.example_img_format)]
+                                  fn.endswith(self.example_img_format) and not fn.__contains__('_tokenized')]
+
         self.example_filenames.sort()
 
         num_images_avail = len(self.example_filenames)
@@ -358,9 +346,9 @@ class TrojanDetectorNER:
                 self.trim_pruned_divisor / self.num_samples) / self.trim_pruned_divisor  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
         if 'reset' in self.pruning_method:
-            # sampling_probability = 0.1
-            # print('SET sampling_probability:', sampling_probability)
-            sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
+            sampling_probability = 0.9
+            print('SET reset sampling_probability:', sampling_probability)
+            # sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
 
         # adjustments per model type for remove method
         if 'remove' in self.pruning_method:
@@ -380,37 +368,64 @@ class TrojanDetectorNER:
 
         return sampling_probability
 
-    def _eval(self, model, preprocessed_data):
+    def _eval(self, model, preprocessed_data, device):
 
         use_amp = False  # attempt to use mixed precision to accelerate embedding conversion process
         # Note, example logit values (in the release datasets) were computed without AMP (i.e. in FP32)
         # Note, should NOT use_amp when operating with MobileBERT
 
-        # predict the text sentiment
-        if use_amp:
-            with torch.cuda.amp.autocast():
-                # Classification model returns loss, logits, can ignore loss if needed
-                _, logits = model(preprocessed_data.input_ids, attention_mask=preprocessed_data.attention_mask, labels=preprocessed_data.labels_tensor)
-        else:
-            _, logits = model(preprocessed_data.input_ids, attention_mask=preprocessed_data.attention_mask, labels=preprocessed_data.labels_tensor)
+        sum = 0.0
 
-        preds = torch.argmax(logits, dim=2).squeeze().cpu().detach().numpy()
-        numpy_logits = logits.cpu().flatten().detach().numpy()
+        for index in range(0, preprocessed_data.num_samples):
+            # loop over all available examples
+            input_ids, attention_mask, labels, labels_mask, labels_tensor, original_words = preprocessed_data.getarrayitem(index, device)
 
-        n_correct = 0
-        n_total = 0
-        predicted_labels = []
-        for i, m in enumerate(preprocessed_data.labels_mask):
-            if m:
-                predicted_labels.append(preds[i])
-                n_total += 1
-                n_correct += preds[i] == preprocessed_data.labels[i]
+            # predict the text sentiment
+            # if use_amp:
+            #     with torch.cuda.amp.autocast():
+            #         # Classification model returns loss, logits, can ignore loss if needed
+            #         _, logits = model(preprocessed_data.input_ids, attention_mask=preprocessed_data.attention_mask, labels=preprocessed_data.labels_tensor)
+            # else:
+            #     _, logits = model(preprocessed_data.input_ids, attention_mask=preprocessed_data.attention_mask, labels=preprocessed_data.labels_tensor)
 
-        print('Predictions: {} from Text: "{}"'.format(predicted_labels, preprocessed_data.original_words))
-        assert len(predicted_labels) == len(preprocessed_data.original_words)
+            if use_amp:
+                with torch.cuda.amp.autocast():
+                    # Classification model returns loss, logits, can ignore loss if needed
+                    _, logits = model(input_ids, attention_mask=attention_mask,
+                                      labels=labels_tensor)
+            else:
+                _, logits = model(input_ids, attention_mask=attention_mask,
+                                  labels=labels_tensor)
+
+            preds = torch.argmax(logits, dim=2).squeeze().cpu().detach().numpy()
+            numpy_logits = logits.cpu().flatten().detach().numpy()
+
+            n_correct = 0
+            n_total = 0
+            predicted_labels = []
+            for i, m in enumerate(labels_mask):
+                if m:
+                    predicted_labels.append(preds[i])
+                    n_total += 1
+                    n_correct += preds[i] == labels[i]
+
+            #print('Predictions: {} from Text: "{}"'.format(predicted_labels, original_words))
+            assert len(predicted_labels) == len(original_words)
+            # print('  logits: {}'.format(numpy_logits))
+            sum += n_correct / float(n_total)
+            # predicted_labels = []
+            # for i, m in enumerate(preprocessed_data.labels_mask):
+            #     if m:
+            #         predicted_labels.append(preds[i])
+            #         n_total += 1
+            #         n_correct += preds[i] == preprocessed_data.labels[i]
+
+        # print('Predictions: {} from Text: "{}"'.format(predicted_labels, preprocessed_data.original_words))
+        # assert len(predicted_labels) == len(preprocessed_data.original_words)
         #print('  logits: {}'.format(numpy_logits))
 
-        return n_correct / float(n_total)
+        #return n_correct / float(n_total)
+        return sum/ float(preprocessed_data.num_samples)
 
     def prune_model(self):
 
@@ -421,9 +436,16 @@ class TrojanDetectorNER:
         #######################################
         # load a model
         #memory_stats('DEBUG: before model_orig')
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        #device = 'cpu'
         try:
-            # load the model to CPU !!!
-            model_orig = torch.load(self.model_filepath, map_location="cpu")
+            model_orig = torch.load(self.model_filepath, map_location=device)
+            #memory_stats('DEBUG: after load model_orig')
+
+            # testing
+            # acc_pruned_model = self._eval(model_orig, preprocessed_data, device)
+            # print('DEBUG: acc_pruned_model:', acc_pruned_model)
+
             #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             # load the classification model and move it to the GPU
             #model_orig = torch.load(self.model_filepath, map_location=torch.device(device))
@@ -458,7 +480,7 @@ class TrojanDetectorNER:
             model = copy.deepcopy(model_orig)
             copy_time = time.perf_counter() - copy_start
 
-            memory_stats('DEBUG: after deepcopy of model_orig')
+            #memory_stats('DEBUG: after deepcopy of model_orig')
             copy_times.append(copy_time)
             print('INFO: ', self.pruning_method, ' pruning method for sample_shift:', sample_shift)
             prune_start = time.perf_counter()
@@ -474,13 +496,14 @@ class TrojanDetectorNER:
                     #              self.ranking_method, self.sampling_probability, self.num_samples)
                 if 'reset' in self.pruning_method:
                     print("entering pruning method = reset ")
-                    reset_prune_model(model, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
+                    reset_prune_model(model, device, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
                                       self.sampling_probability,
                                       self.num_samples)
                 if 'trim' in self.pruning_method:
-                    trim_prune_model(model, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
-                               self.sampling_probability,
-                               self.num_samples, self.trim_pruned_amount)
+                    print("pruning method = trim is currently not supported ")
+                    # trim_prune_model(model, device, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
+                    #            self.sampling_probability,
+                    #            self.num_samples, self.trim_pruned_amount)
 
             except:
                 # this is relevant to PM=Remove because it fails for some configurations to prune the model correctly
@@ -490,7 +513,7 @@ class TrojanDetectorNER:
                     fh.write("\n")
                 raise
 
-            memory_stats('DEBUG: after pruning deepcopy of model_orig')
+            #memory_stats('DEBUG: after pruning deepcopy of model_orig')
 
             prune_time = time.perf_counter() - prune_start
             prune_times.append(prune_time)
@@ -501,8 +524,8 @@ class TrojanDetectorNER:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             # push the pruned model to GPU
             model.to(device)
-            acc_pruned_model = self._eval(model, preprocessed_data)
-            memory_stats('DEBUG: after eval of pruned model')
+            acc_pruned_model = self._eval(model, preprocessed_data, device)
+            #memory_stats('DEBUG: after eval of pruned model')
 
             eval_time = time.perf_counter() - eval_start
             eval_times.append(eval_time)
@@ -513,7 +536,7 @@ class TrojanDetectorNER:
             del model
             torch.cuda.empty_cache()
             #print('torch.cuda.memory_snapshot():', torch.cuda.memory_snapshot())
-            memory_stats('DEBUG: after torch.cuda.empty_cache()')
+            #memory_stats('DEBUG: after torch.cuda.empty_cache()')
 
 
         loop_time = time.perf_counter() - loop_start
@@ -585,7 +608,7 @@ class TrojanDetectorNER:
             fh.write("{}, ".format(self.num_images_used))
             fh.write("{:.4f}, ".format(self.sampling_probability))
             for i in range(len(acc_pruned_model_shift)):
-                fh.write("{:.4f}, ".format(acc_pruned_model_shift[i]))
+                fh.write("{:.8f}, ".format(acc_pruned_model_shift[i]))
 
             fh.write("mean, {:.4f}, ".format(mean_acc_pruned_model))
             fh.write("stdev, {:.4f}, ".format(stdev_acc_pruned_model))

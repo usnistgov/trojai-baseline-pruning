@@ -30,14 +30,22 @@ class extended_dataset_ner(torch.utils.data.Dataset):
   #def __init__(self, list_IDs, labels):
   def __init__(self, list_filenames, tokenizer, max_input_length, num_iterations=1):
 
-      device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+      #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+      input_ids = []
+      attention_mask = []
+      labels = []
+      labels_mask = []
+      original_words = []
+
+      num_samples = 0
       for fn in list_filenames:
           # For this example we parse the raw txt file to demonstrate tokenization.
           if fn.endswith('_tokenized.txt'):
               continue
 
           # load the example
-          original_words = []
+          _original_words = []
           original_labels = []
           with open(fn, 'r') as fh:
               lines = fh.readlines()
@@ -46,37 +54,48 @@ class extended_dataset_ner(torch.utils.data.Dataset):
                   word = split_line[0].strip()
                   label = split_line[2].strip()
 
-                  original_words.append(word)
+                  _original_words.append(word)
                   original_labels.append(int(label))
 
           # Select your preference for tokenization
-          input_ids, attention_mask, labels, labels_mask = tokenize_and_align_labels(tokenizer, original_words, original_labels, max_input_length)
-          input_ids, attention_mask, labels, labels_mask = manual_tokenize_and_align_labels(tokenizer, original_words,
+          #input_ids, attention_mask, labels, labels_mask = tokenize_and_align_labels(tokenizer, original_words, original_labels, max_input_length)
+          # input_ids, attention_mask, labels, labels_mask = manual_tokenize_and_align_labels(tokenizer, original_words,
+          #                                                                                   original_labels,
+          #                                                                                   max_input_length)
+          _input_ids, _attention_mask, _labels, _labels_mask = manual_tokenize_and_align_labels(tokenizer, _original_words,
                                                                                             original_labels,
                                                                                             max_input_length)
 
-          input_ids = torch.as_tensor(input_ids)
-          attention_mask = torch.as_tensor(attention_mask)
-          labels_tensor = torch.as_tensor(labels)
-
-          if device != 'cpu':
-              input_ids = input_ids.to(device)
-              attention_mask = attention_mask.to(device)
-              labels_tensor = labels_tensor.to(device)
-
-          # Create just a single batch
-          input_ids = torch.unsqueeze(input_ids, axis=0)
-          attention_mask = torch.unsqueeze(attention_mask, axis=0)
-          labels_tensor = torch.unsqueeze(labels_tensor, axis=0)
+          input_ids.append(_input_ids)
+          attention_mask.append(_attention_mask)
+          labels.append(_labels)
+          labels_mask.append(_labels_mask)
+          original_words.append((_original_words))
+          num_samples += 1
+          ###############################################
+          # input_ids = torch.as_tensor(input_ids)
+          # attention_mask = torch.as_tensor(attention_mask)
+          # labels_tensor = torch.as_tensor(labels)
+          #
+          # if device != 'cpu':
+          #     input_ids = input_ids.to(device)
+          #     attention_mask = attention_mask.to(device)
+          #     labels_tensor = labels_tensor.to(device)
+          #
+          # # Create just a single batch
+          # input_ids = torch.unsqueeze(input_ids, axis=0)
+          # attention_mask = torch.unsqueeze(attention_mask, axis=0)
+          # labels_tensor = torch.unsqueeze(labels_tensor, axis=0)
 
       #############################################################
       'Initialization'
       self.input_ids = input_ids
       self.attention_mask = attention_mask
-      self.labels_tensor = labels_tensor
+      #self.labels_tensor = labels_tensor
       self.original_words = original_words
       self.labels_mask = labels_mask
       self.labels = labels
+      self.num_samples = num_samples
 
       self.tokenizer = tokenizer
       self.max_input_length = max_input_length
@@ -84,8 +103,30 @@ class extended_dataset_ner(torch.utils.data.Dataset):
       print('Total length = {}'.format(len(self.input_ids)))
 
   def __len__(self):
-        'Denotes the total number of samples'
-        return len(self.input_ids)
+      'Denotes the total number of samples'
+      return len(self.input_ids)
+
+  def getarrayitem(self, index, device):
+      if index < 0 or index >= self.num_samples:
+          print("ERROR: index is out of range:", index, " range=[", 0, ", ", self.num_samples)
+
+      input_ids = torch.as_tensor(self.input_ids[index])
+      attention_mask = torch.as_tensor(self.attention_mask[index])
+      labels_tensor = torch.as_tensor(self.labels[index])
+
+      if device != 'cpu':
+          input_ids = input_ids.to(device)
+          attention_mask = attention_mask.to(device)
+          labels_tensor = labels_tensor.to(device)
+
+      # Create just a single batch
+      input_ids = torch.unsqueeze(input_ids, axis=0)
+      attention_mask = torch.unsqueeze(attention_mask, axis=0)
+      labels_tensor = torch.unsqueeze(labels_tensor, axis=0)
+
+      self.labels_tensor = labels_tensor
+
+      return input_ids, attention_mask, self.labels[index],  self.labels_mask[index], self.labels_tensor, self.original_words[index]
 
 
 # Adapted from: https://github.com/huggingface/transformers/blob/2d27900b5d74a84b4c6b95950fd26c9d794b2d57/examples/pytorch/token-classification/run_ner.py#L318
