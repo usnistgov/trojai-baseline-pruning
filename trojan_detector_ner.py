@@ -179,12 +179,12 @@ class TrojanDetectorNER:
         self.tokenizer = torch.load(self.tokenizer_filepath)
 
         # Or load the tokenizer from the HuggingFace library by name
-        embedding_flavor = config['embedding_flavor']
-        if config['embedding'] == 'RoBERTa':
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(embedding_flavor, use_fast=True,
-                                                                   add_prefix_space=True)
-        else:
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(embedding_flavor, use_fast=True)
+        # embedding_flavor = config['embedding_flavor']
+        # if config['embedding'] == 'RoBERTa':
+        #    self.tokenizer = transformers.AutoTokenizer.from_pretrained(embedding_flavor, use_fast=True,
+         #                                                          add_prefix_space=True)
+        # else:
+        #    self.tokenizer = transformers.AutoTokenizer.from_pretrained(embedding_flavor, use_fast=True)
 
         # set the padding token if its undefined
         if not hasattr(self.tokenizer, 'pad_token') or self.tokenizer.pad_token is None:
@@ -655,7 +655,7 @@ class TrojanDetectorNER:
         # method specific parameters
         parser.add_argument('--pruning_method', type=str,
                             help='The pruning method to use (trim, reset, or remove)',
-                            default='remove')
+                            default='reset')
         parser.add_argument('--sampling_method', type=str,
                             help='The sampling method to use (random, targeted, or uniform)',
                             default='targeted')
@@ -670,7 +670,7 @@ class TrojanDetectorNER:
                             default='100')
         parser.add_argument('--linear_regression_filepath', type=str,
                             help='The linear regression filepath. Used to apply the results of the linear regression.',
-                            default='')
+                            default='./linear_regression_data/r7_reset_L1_targeted_15_100_0p9_layer0p005.csv')
         parser.add_argument('--trim_pruned_amount', type=float,
                             help='Amount used when calculating the sampling probability for trim.',
                             default='0.5')
