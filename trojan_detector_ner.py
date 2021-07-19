@@ -752,6 +752,7 @@ class TrojanDetectorNER:
                                            args.num_duplicate_data_iterations, args.batch_size, args.num_workers)
 
         if args.optimal_configuration_csv_filepath is not None:
+            print('INFO: loading optimal configuration:')
             trojanDetector.update_configuration_from_optimal_configuration_csv_filepath(
                 args.optimal_configuration_csv_filepath)
 
