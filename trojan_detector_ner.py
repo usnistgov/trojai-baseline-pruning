@@ -592,6 +592,7 @@ class TrojanDetectorNER:
         # round 2 - linear regression coefficients applied to the num_samples (signal measurement)
         # this function should be enabled if  the estimated multiple linear correlation coefficients should be applied
         if self.trained_coef is not None:
+            print('INFO: applying pre-computed linear regression coefficients:', self.trained_coef)
             prob_trojan_in_model = linear_regression_prediction(self.trained_coef, acc_pruned_model_shift)
 
         # stop timing the execution
