@@ -225,7 +225,7 @@ class TrojanDetectorNER:
         self.sampling_probability = self._configure_prune_sampling_probability()
 
         if os.path.isfile(self.linear_regression_filepath):
-            self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_architecture)
+            self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_name)
             print('loaded pre-computed linear regression coefficients; number of coeff:', len(self.trained_coef ))
         else:
             self.trained_coef = None
@@ -282,8 +282,8 @@ class TrojanDetectorNER:
                             col_index = col_index + 1
                         coef = [-1] * (end + 1 - start)
                     else:
-                        if self.model_architecture == row[architecture_name_index]:
-                            print('Found model architecture: {}'.format(self.model_architecture))
+                        if self.model_name == row[architecture_name_index]:
+                            print('Found model architecture: {}'.format(self.model_name))
                             self.num_images_used = int(row[num_images_used_index])
                             self.num_samples = int(row[num_samples_index])
                             self.pruning_method = row[pruning_method_index]
