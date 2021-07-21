@@ -29,5 +29,5 @@ if __name__ == '__main__':
 
     print('torch version: %s \n' % (torch.__version__))
 
-    trojan_detector = TrojanDetectorNER.processParameters(default_config_file='config_files/round7.config')
+    trojan_detector = TrojanDetectorNER.processParameters(default_config_file='/config_files/round7.config')
     trojan_detector.prune_model()

@@ -224,15 +224,18 @@ class TrojanDetectorNER:
         self.example_filenames = self._configure_example_filenames()
         self.sampling_probability = self._configure_prune_sampling_probability()
 
+        print('INFO: linear_regression_filepath:', linear_regression_filepath)
         if os.path.isfile(self.linear_regression_filepath):
             self.trained_coef = read_regression_coefficients(self.linear_regression_filepath, self.model_name)
             print('loaded pre-computed linear regression coefficients; number of coeff:', len(self.trained_coef ))
         else:
+            print('INFO: the linear_regression_filepath does not exist!!!', linear_regression_filepath)
             self.trained_coef = None
 
 
     # Updates trojan detection parameters based on optimal configuration CSV. This overrides values taken from command-line.
     def update_configuration_from_optimal_configuration_csv_filepath(self, optimal_configuration_csv_filepath):
+        print('INFO: optimal_configuration_csv_filepath:', optimal_configuration_csv_filepath)
         if os.path.isfile(optimal_configuration_csv_filepath):
             coef = [-1]
             with open(optimal_configuration_csv_filepath) as csvfile:
@@ -671,7 +674,7 @@ class TrojanDetectorNER:
                             default='100')
         parser.add_argument('--linear_regression_filepath', type=str,
                             help='The linear regression filepath. Used to apply the results of the linear regression.',
-                            default='./linear_regression_data/r7_reset_L1_targeted_15_100_0p9_layer0p005.csv')
+                            default=None)
         parser.add_argument('--trim_pruned_amount', type=float,
                             help='Amount used when calculating the sampling probability for trim.',
                             default='0.5')
@@ -716,7 +719,7 @@ class TrojanDetectorNER:
                                  'this file overrides the following configuration settings: '
                                  'number of eval images, number of samples, pruning method, '
                                  'ranking method, sampling method, and the linear regression filepath',
-                            default=None)
+                            default='/optimal_configurations/r7_reset_L1_targeted_15_100_0p9_layer0p005_.csv')
         parser.set_defaults(use_cuda=True)
 
         args = parser.parse_args()
