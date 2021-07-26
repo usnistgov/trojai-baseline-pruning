@@ -237,8 +237,8 @@ class TrojanDetectorNER:
 
     # Updates trojan detection parameters based on optimal configuration CSV. This overrides values taken from command-line.
     def update_configuration_from_optimal_configuration_csv_filepath(self, optimal_configuration_csv_filepath):
-        print('INFO: optimal_configuration_csv_filepath:', optimal_configuration_csv_filepath)
         if os.path.isfile(optimal_configuration_csv_filepath):
+            print('INFO: optimal_configuration_csv_filepath isfile:', optimal_configuration_csv_filepath)
             coef = [-1]
             with open(optimal_configuration_csv_filepath) as csvfile:
                 readCSV = csv.reader(csvfile, delimiter=',')
@@ -355,7 +355,7 @@ class TrojanDetectorNER:
                 self.trim_pruned_divisor / self.num_samples) / self.trim_pruned_divisor  # 0.2 # 1.0/num_samples #0.2 # before 0.4
 
         if 'reset' in self.pruning_method:
-            sampling_probability = 0.9
+            sampling_probability = 0.95
             print('SET reset sampling_probability:', sampling_probability)
             # sampling_probability = np.ceil(self.reset_pruned_divisor / self.num_samples) / self.reset_pruned_divisor
 
