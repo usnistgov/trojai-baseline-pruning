@@ -14,6 +14,7 @@ conda activate r7venv
 NUM_SAMPLES=$1
 NUM_IMAGES=$2
 PRUNING_METHOD=$3
+LAYER_PROB=$4
 
 #CONTAINER_NAME=$1
 #QUEUE_NAME=$2
@@ -51,7 +52,7 @@ do
 
 		if [[ $MODEL == id* ]] ; then
 
-			python ./trojan_detector_ner.py --my-config ./config_files/round7.config --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --tokenizer_filepath $TOKENIZER_DIRPATH --num_duplicate_data_iterations 1
+			python ./trojan_detector_ner.py --my-config ./config_files/round7.config --model_filepath $dir/model.pt  --result_filepath $RESULT_DIR/test_python_output.txt --scratch_dirpath $SCRATCH_DIR --examples_dirpath $dir/clean_example_data  --num_samples $NUM_SAMPLES --num_images_used $NUM_IMAGES --pruning_method $PRUNING_METHOD --tokenizer_filepath $TOKENIZER_DIRPATH --layer_probability $LAYER_PROB --num_duplicate_data_iterations 1
 			echo "Finished executing $dir, returned status code: $?"
 
 #			if [[ "$QUEUE_NAME" == "sts" ]]; then

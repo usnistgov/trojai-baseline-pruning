@@ -24,7 +24,7 @@ from linear_regression import read_regression_coefficients, linear_regression_pr
 class TrojanDetectorNER:
     def __init__(self, model_filepath, tokenizer_filepath, result_filepath, scratch_dirpath,
                  examples_dirpath, pruning_method, sampling_method, ranking_method,
-                 num_samples, num_images_used, linear_regression_filepath,
+                 num_samples, num_images_used, layer_probability, linear_regression_filepath,
                  trim_pruned_amount=0.5, trim_pruned_multiplier=4.0, trim_pruned_divisor=1000.0,
                  reset_pruned_divisor=1000.0, remove_pruned_num_samples_threshold=5,
                  remove_pruned_divisor=1000.0, mean_acc_pruned_model_threshold=0.01,
@@ -73,6 +73,7 @@ class TrojanDetectorNER:
         self.sampling_method = sampling_method  # random or targeted or uniform sampling
         self.ranking_method = ranking_method  # 'L1'  # L1, L2, Linf, STDEV
         self.num_samples = num_samples  # nS=5 or  10 or 15 or 25 was tested
+        self.layer_probability = layer_probability # pL in [0,1]
         # set the number of images used
         self.num_images_used = num_images_used  # nD=10,20,30,40 was tested
 
@@ -130,8 +131,8 @@ class TrojanDetectorNER:
 
         print('pruning_method (PM):', self.pruning_method, ' sampling method (SM):', self.sampling_method,
               ' ranking method (RM):',
-              self.ranking_method)
-        print('num_samples (nS):', self.num_samples, ' num_sentiment_text_used (nD):', self.num_images_used)
+              self.ranking_method, ' layer_probability (pL):', self.layer_probability)
+        print('num_samples (nS):', self.num_samples, ' num_NER_text_used (nD):', self.num_images_used)
 
         self.scratch_filepath = os.path.join(self.scratch_dirpath, self.model_name + '_log.csv')
 
@@ -218,7 +219,8 @@ class TrojanDetectorNER:
             fh.write("model_filepath, {}, ".format(self.model_filepath))
             fh.write("model_size, {}, ".format(a.model_size))
             fh.write("ref_model_size, {:.4f}, ".format(self.ref_model_size))
-            fh.write("delta_model_size, {:.4f}, ".format(self.min_model_size_delta))
+            #fh.write("delta_model_size, {:.4f}, ".format(self.min_model_size_delta))
+            fh.write("layer_probability , {:.4f}, ".format(self.layer_probability))
             fh.write("gt_model_label, {}, ".format(self.gt_model_label))
 
         self.example_filenames = self._configure_example_filenames()
@@ -248,6 +250,7 @@ class TrojanDetectorNER:
                 ranking_method_index = -1
                 sampling_method_index = -1
                 pruning_probability_index = -1
+                layer_probability_index = -1
                 row_index = 0
 
                 for row in readCSV:
@@ -273,6 +276,8 @@ class TrojanDetectorNER:
                                 sampling_method_index = col_index
                             if 'pruning probability' in elem:
                                 pruning_probability_index = col_index
+                            if 'layer_probability' in elem:
+                                layer_probability_index = col_index
 
                             # parse the header to determine start and end of the coefficients
                             if elem.startswith('b') and len(elem) < 4:  # support for nS<99
@@ -293,6 +298,7 @@ class TrojanDetectorNER:
                             self.ranking_method = row[ranking_method_index]
                             self.sampling_method = row[sampling_method_index]
                             self.sampling_probability = float(row[pruning_probability_index])
+                            self.layer_probability = float(row[layer_probability_index])
 
                             for col_index in range(start, end + 1):
                                 if row[col_index] != '':
@@ -304,7 +310,7 @@ class TrojanDetectorNER:
                 print('Found coef: {}'.format(self.trained_coef))
                 print('pruning_method (PM):', self.pruning_method, ' sampling method (SM):', self.sampling_method,
                       ' ranking method (RM):',
-                      self.ranking_method)
+                      self.ranking_method, ' layer_probability (pL):', self.layer_probability)
                 print('num_samples (nS):', self.num_samples, ' num_images_used (nD):', self.num_images_used)
                 print('Sampling probability: {}'.format(self.sampling_probability))
 
@@ -500,12 +506,11 @@ class TrojanDetectorNER:
                 if 'reset' in self.pruning_method:
                     print("entering pruning method = reset ")
                     reset_prune_model(model, device, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
-                                      self.sampling_probability,
-                                      self.num_samples)
+                                      self.layer_probability, self.sampling_probability,self.num_samples)
                 if 'trim' in self.pruning_method:
                     print("pruning method = trim is currently not supported ")
                     # trim_prune_model(model, device, self.model_name, sample_shift, self.sampling_method, self.ranking_method,
-                    #            self.sampling_probability,
+                    #            self.layer_probability, self.sampling_probability,
                     #            self.num_samples, self.trim_pruned_amount)
 
             except:
@@ -669,6 +674,9 @@ class TrojanDetectorNER:
         parser.add_argument('--num_samples', type=int,
                             help='The number of samples (models) to execute with.',
                             default='15')
+        parser.add_argument('--layer_probability', type=float,
+                            help='Probability that a layer will be pruned in [0,1].',
+                            default='0.005')
         parser.add_argument('--num_images_used', type=int,
                             help='The number of images to inference with.',
                             default='100')
@@ -745,7 +753,7 @@ class TrojanDetectorNER:
                                            scratch_dirpath, examples_dirpath,
                                            args.pruning_method, args.sampling_method,
                                            args.ranking_method, args.num_samples,
-                                           args.num_images_used, args.linear_regression_filepath,
+                                           args.num_images_used, args.layer_probability, args.linear_regression_filepath,
                                            args.trim_pruned_amount, args.trim_pruned_multiplier,
                                            args.trim_pruned_divisor, args.reset_pruned_divisor,
                                            args.remove_pruned_num_samples_threshold, args.remove_pruned_divisor,

@@ -30,7 +30,7 @@ This class is designed to reset nodes to zero in a graph defining an AI model
 
 
 ##################################################################
-def reset_prune_model(model, device, model_name, sample_shift, sampling_method, ranking_method, probability, num_shifts):
+def reset_prune_model(model, device, model_name, sample_shift, sampling_method, ranking_method, layer_probability, node_probability, num_shifts):
     print('INFO: model_name ', model_name)
     #print('model.modules():', model.modules())
     #print('model:', model)
@@ -42,7 +42,7 @@ def reset_prune_model(model, device, model_name, sample_shift, sampling_method, 
 
     num_blocks = 0
     num_conv_pruned = 0
-    multiplier = probability  # prune_probs[0]
+    #multiplier = node_probability  # prune_probs[0]
 
     print('INFO: number of layers to prune:', len(prunable_modules))
     index = 0
@@ -87,9 +87,8 @@ def reset_prune_model(model, device, model_name, sample_shift, sampling_method, 
                 temp = np.argsort(rank_layer_norm)
                 len_temp = len(temp)
 
-            # prune 1 % of the layers and decide on layers based on sample_shift
-            # TODO insert layer_probability to round7.config
-            layer_probability = 0.005
+            # prune % of the layers and decide on layers based on sample_shift
+            #layer_probability = 0.005
             num_layer_pruned = layer_probability * num_layers
             first_layer = sample_shift * (len_temp // (num_shifts - 1))
             last_layer = first_layer + num_layer_pruned
@@ -110,19 +109,19 @@ def reset_prune_model(model, device, model_name, sample_shift, sampling_method, 
             #for layer_idx in range(0, num_layers):
 
                 if 'random' in sampling_method:
-                    num = reset_prune_random(layer_to_prune.weight[temp[layer_idx]], multiplier, device)
+                    num = reset_prune_random(layer_to_prune.weight[temp[layer_idx]], node_probability, device)
                 elif 'targeted' in sampling_method:
                     # trojan_detector_ner.memory_stats('DEBUG: before reset_prune_targeted')
                     # tracked = gc.get_objects()  # Start tracking the collected objects
                     # print("DEBUG START: Number of objects tracked: ", len(tracked))  # Number of tracked objects
-                    num = reset_prune_targeted(sample_shift, layer_to_prune.weight[temp[layer_idx]], multiplier,
+                    num = reset_prune_targeted(sample_shift, layer_to_prune.weight[temp[layer_idx]], node_probability,
                                                ranking_method,
                                                num_shifts, device)
                     # trojan_detector_ner.memory_stats('DEBUG: after reset_prune_targeted')
                     # tracked_end = gc.get_objects()  # Start tracking the collected objects
                     # print("DEBUG END: Number of objects tracked: ", len(tracked_end))  # Number of tracked objects
                 elif 'uniform' in sampling_method:
-                    num = reset_prune_uniform(sample_shift, layer_to_prune.weight[temp[layer_idx]], multiplier,
+                    num = reset_prune_uniform(sample_shift, layer_to_prune.weight[temp[layer_idx]], node_probability,
                                               ranking_method,
                                               num_shifts, device)
                 else:
@@ -144,20 +143,34 @@ def reset_prune_model(model, device, model_name, sample_shift, sampling_method, 
 ############################################
 # methods for random sampling
 def reset_prune_random(conv, pruned_prob, device):
-    print('ERROR: reset_prune_random is not supported right now')
-    return -1
 
-    weight = conv.detach().cpu().numpy()
-    out_channels = weight.shape[0]
+    if device == 'cpu':
+        weight = conv.detach().cpu().numpy()
+
+    if device != 'cpu':
+        #GPU implementation
+        out_channels = conv.shape[0]
+        num_dim = len(conv.shape)
+    else:
+        out_channels = weight.shape[0]
+        num_dim = len(weight.shape)
+
     num_pruned = int(out_channels * pruned_prob)
     if num_pruned == out_channels:
         print('prune_conv_random: num_pruned is equal to number of output channels')
+
     prune_index = random.sample(list(range(out_channels)), num_pruned)
-    for idx in prune_index:
-        conv[idx].zero_()
+    if device != 'cpu':
+        for idx in prune_index:
+            conv[idx].zero_()
+    else:
+        for idx in prune_index:
+            conv[idx].data = torch.tensor(0.0).data
 
     del prune_index
-    del weight
+    if device == 'cpu':
+        del weight
+
     return num_pruned
 
 
@@ -337,53 +350,95 @@ def reset_prune_targeted(sample_shift, conv, pruned_prob, ranking_method,num_shi
 ############################################
 # methods for uniform sampling with shift
 def reset_prune_uniform(sample_shift, conv, pruned_prob, ranking_method,num_shifts, device):
-    print('ERROR: reset_prune_uniform is not supported right now')
-    return -1
+    # TODO: the uniform sampling must be checked!!!!
 
-    weight = conv.detach().cpu().numpy()
-    out_channels = weight.shape[0]
+    if device == 'cpu':
+        weight = conv.detach().numpy()
+
+    if device != 'cpu':
+        # GPU implementation
+        out_channels = conv.shape[0]
+        num_dim = len(conv.shape)
+    else:
+        out_channels = weight.shape[0]
+        num_dim = len(weight.shape)
+
 
     if 'L1' in ranking_method:
-        if len(weight.shape) > 1:
-            rank_norm = np.sum(np.abs(weight), axis=(1))
+        if num_dim > 1:
+            if device != 'cpu':
+                # GPU implementation
+                rank_norm = torch.sum(torch.abs(conv), dim=1)
+            else:
+                rank_norm = np.sum(np.abs(weight), axis=(1))
+
         else:
-            rank_norm = np.abs(weight)
-        # rank_norm = np.sum(np.abs(weight), axis=(1, 2, 3))
+            if device != 'cpu':
+                # GPU implementation
+                rank_norm = torch.abs(conv)
+            else:
+                rank_norm = np.abs(weight)
+
     elif 'L2' in ranking_method:
-        if len(weight.shape) > 1:
-            rank_norm = np.sum(np.abs(weight) * np.abs(weight), axis=(1))
+        if num_dim > 1:
+            if device != 'cpu':
+                # GPU implementation
+                rank_norm = torch.sum(torch.abs(conv) * torch.abs(conv), dim=1)
+            else:
+                rank_norm = np.sum(np.abs(weight) * np.abs(weight), axis=(1))
+
         else:
-            rank_norm = np.sum(np.abs(weight) * np.abs(weight))
-        # rank_norm = np.sum(np.abs(weight) * np.abs(weight), axis=(1, 2, 3))
+            if device != 'cpu':
+                # GPU implementation
+                rank_norm = torch.abs(conv) * torch.abs(conv)
+            else:
+                rank_norm = np.abs(weight) * np.abs(weight)
+
     elif 'Linf' in ranking_method:
         rank_norm = []
-        for idx in range(weight.shape[0]):
-            rank_norm.append(weight[idx].max())
+        for idx in range(out_channels):
+            if device != 'cpu':
+                # GPU implementation
+                rank_norm.append(conv[idx].max())
+            else:
+                rank_norm.append(weight[idx].max())
+
     elif 'STDEV' in ranking_method:
-        if len(weight.shape) > 1:
-            rank_norm = np.std(weight, axis=(1))
+        if num_dim > 1:
+            if device != 'cpu':
+                # GPU implementation
+                stdev, mean = torch.std_mean(conv, dim=1, unbiased=False)
+                rank_norm = stdev
+            else:
+                rank_norm = np.std(weight, axis=(1))
+
         else:
-            rank_norm = np.std(weight)
-        # rank_norm = np.std(weight, axis=(1, 2, 3))
+            if device != 'cpu':
+                # GPU implementation
+                stdev, mean = torch.std_mean(conv, unbiased=False)
+                rank_norm = stdev
+            else:
+                rank_norm = np.std(weight)
+
     else:
         print('ERROR: unrecognized ranking method:', ranking_method)
         return 0
 
-    # filter_hist_filepath = 'C:/PeterB/Projects/TrojAI/python/trojai-pruning/scratch/hist_conv.csv'
-    # with open(filter_hist_filepath, 'a') as fh:
-    #     for j in range(len(L1_norm)):
-    #         fh.write("{}, ".format(L1_norm[j]))
-    #     fh.write("\n")
-
     num_pruned = int(out_channels * pruned_prob)
     if num_pruned == out_channels:
-        print('reset_prune: num_pruned is equal to number of output channels')
+        print('prune_conv: num_pruned is equal to number of output channels')
 
     if num_pruned > 0:
         # print('INFO: conv num_pruned:', num_pruned)
-        temp = np.argsort(rank_norm)
-        len_temp = len(temp)
-        # step = len_temp / num_pruned
+        if device != 'cpu':
+            # GPU implementation
+            temp = torch.argsort(rank_norm)
+            len_temp = temp.shape[0]
+        else:
+            temp = np.argsort(rank_norm)
+            len_temp = len(temp)
+
+
         first_sample = sample_shift * (len_temp // (num_shifts - 1))
         last_sample = first_sample + num_pruned
         if last_sample > len_temp:
@@ -391,16 +446,84 @@ def reset_prune_uniform(sample_shift, conv, pruned_prob, ranking_method,num_shif
             first_sample = len_temp - num_pruned
             last_sample = len_temp
 
-        # prune_index = temp[first_sample:last_sample].tolist()
-        # for idx in prune_index:
-        #     conv[idx].zero_()
+        if first_sample < 0:
+            print('ERROR: first_sample < 0: ', first_sample)
+            return num_pruned
 
-        for idx in range(first_sample, last_sample):
-            conv[temp[idx]].data = torch.tensor(0.0).data
+        if device != 'cpu':
+            for idx in range(first_sample, last_sample):
+                conv[temp[idx]].zero_()
+        else:
+            for idx in range(first_sample, last_sample):
+                conv[temp[idx]].data = torch.tensor(0.0).data
+
 
         del temp
 
     del rank_norm
-    del weight
+    gc.collect()
+
+    # weight = conv.detach().cpu().numpy()
+    # out_channels = weight.shape[0]
+    #
+    # if 'L1' in ranking_method:
+    #     if len(weight.shape) > 1:
+    #         rank_norm = np.sum(np.abs(weight), axis=(1))
+    #     else:
+    #         rank_norm = np.abs(weight)
+    #     # rank_norm = np.sum(np.abs(weight), axis=(1, 2, 3))
+    # elif 'L2' in ranking_method:
+    #     if len(weight.shape) > 1:
+    #         rank_norm = np.sum(np.abs(weight) * np.abs(weight), axis=(1))
+    #     else:
+    #         rank_norm = np.sum(np.abs(weight) * np.abs(weight))
+    #     # rank_norm = np.sum(np.abs(weight) * np.abs(weight), axis=(1, 2, 3))
+    # elif 'Linf' in ranking_method:
+    #     rank_norm = []
+    #     for idx in range(weight.shape[0]):
+    #         rank_norm.append(weight[idx].max())
+    # elif 'STDEV' in ranking_method:
+    #     if len(weight.shape) > 1:
+    #         rank_norm = np.std(weight, axis=(1))
+    #     else:
+    #         rank_norm = np.std(weight)
+    #     # rank_norm = np.std(weight, axis=(1, 2, 3))
+    # else:
+    #     print('ERROR: unrecognized ranking method:', ranking_method)
+    #     return 0
+
+    # filter_hist_filepath = 'C:/PeterB/Projects/TrojAI/python/trojai-pruning/scratch/hist_conv.csv'
+    # with open(filter_hist_filepath, 'a') as fh:
+    #     for j in range(len(L1_norm)):
+    #         fh.write("{}, ".format(L1_norm[j]))
+    #     fh.write("\n")
+    #
+    # num_pruned = int(out_channels * pruned_prob)
+    # if num_pruned == out_channels:
+    #     print('reset_prune: num_pruned is equal to number of output channels')
+    #
+    # if num_pruned > 0:
+    #     # print('INFO: conv num_pruned:', num_pruned)
+    #     temp = np.argsort(rank_norm)
+    #     len_temp = len(temp)
+    #     # step = len_temp / num_pruned
+    #     first_sample = sample_shift * (len_temp // (num_shifts - 1))
+    #     last_sample = first_sample + num_pruned
+    #     if last_sample > len_temp:
+    #         # print('debug: last_sample=', last_sample)
+    #         first_sample = len_temp - num_pruned
+    #         last_sample = len_temp
+    #
+    #     # prune_index = temp[first_sample:last_sample].tolist()
+    #     # for idx in prune_index:
+    #     #     conv[idx].zero_()
+    #
+    #     for idx in range(first_sample, last_sample):
+    #         conv[temp[idx]].data = torch.tensor(0.0).data
+    #
+    #     del temp
+    #
+    # del rank_norm
+    # del weight
 
     return num_pruned
