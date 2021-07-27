@@ -30,8 +30,8 @@ TOKENIZER_DIRPATH=/wrk/pnb/trojai_data/round7/round7-train-dataset/tokenizers
 #CONTAINER_EXEC=/mnt/scratch/$CONTAINER_NAME
 #RESULT_DIR=/home/pnb/raid1/trojai/datasets/round6/scratch_r6
 #SCRATCH_DIR=/home/pnb/raid1/trojai/datasets/round6/scratch_r6
-RESULT_DIR=/wrk/pnb/trojai_data/round7/scratch_r7-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
-SCRATCH_DIR=/wrk/pnb/trojai_data/round7/scratch_r7-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD
+RESULT_DIR=/wrk/pnb/trojai_data/round7/scratch_r7-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD-pL$LAYER_PROB
+SCRATCH_DIR=/wrk/pnb/trojai_data/round7/scratch_r7-nS$NUM_SAMPLES-nD$NUM_IMAGES-$PRUNING_METHOD-pL$LAYER_PROB
 
 #mkdir -p $RESULT_DIR
 mkdir -p $SCRATCH_DIR
