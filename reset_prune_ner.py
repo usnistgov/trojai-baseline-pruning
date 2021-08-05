@@ -90,7 +90,9 @@ def reset_prune_model(model, device, model_name, sample_shift, sampling_method, 
             # prune % of the layers and decide on layers based on sample_shift
             #layer_probability = 0.005
             num_layer_pruned = layer_probability * num_layers
-            first_layer = sample_shift * (len_temp // (num_shifts - 1))
+            # change from sample_shift to the last sample_shift since argsort delivers from the smaller to the largest values
+            #first_layer = sample_shift * (len_temp // (num_shifts - 1))
+            first_layer = (num_shifts - 1) * (len_temp // (num_shifts - 1))
             last_layer = first_layer + num_layer_pruned
             if last_layer > len_temp:
                 # print('debug: last_sample=', last_sample)

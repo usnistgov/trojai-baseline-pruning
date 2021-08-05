@@ -485,7 +485,6 @@ class TrojanDetectorNER:
 
         for sample_shift in range(self.num_samples):
             copy_start = time.perf_counter()
-            # copy model on CPU !!!
             model = copy.deepcopy(model_orig)
             copy_time = time.perf_counter() - copy_start
 
