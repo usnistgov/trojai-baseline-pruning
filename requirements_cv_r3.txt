@@ -39,7 +39,7 @@ opencv-python==4.2.0.34
 opencv-python-headless==4.4.0.44
 packaging==20.4
 pandas==1.0.3
-Pillow==7.1.2
+Pillow==9.0.1
 plac==0.9.6
 preshed==3.0.2
 protobuf==3.13.0
