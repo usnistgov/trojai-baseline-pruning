@@ -30,7 +30,7 @@ mkl-random==1.1.1
 mkl-service==2.3.0
 networkx==2.4
 nltk==3.5
-numpy==1.20.2
+numpy==1.22.0
 oauthlib==3.1.0
 olefile==0.46
 opencv-python==4.3.0.36
