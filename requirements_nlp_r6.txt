@@ -38,7 +38,7 @@ packaging==20.9
 pandas==1.1.5
 patsy==0.5.1
 Pillow @ file:///tmp/build/80754af9/pillow_1617383569452/work
-protobuf==3.12.2
+protobuf==3.18.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pyllist==0.3
