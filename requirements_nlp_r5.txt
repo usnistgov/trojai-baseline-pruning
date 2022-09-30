@@ -21,7 +21,7 @@ idna==2.10
 imageio==2.8.0
 importlib-metadata==3.4.0
 insightface==0.1.5
-joblib==0.16.0
+joblib==1.2.0
 jsonpickle==2.0.0
 kiwisolver==1.2.0
 Markdown==3.3.3
