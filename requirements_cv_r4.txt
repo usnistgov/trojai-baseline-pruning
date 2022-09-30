@@ -12,7 +12,7 @@ guppy3==3.1.0
 idna==2.10
 imageio==2.8.0
 insightface==0.1.5
-joblib==0.16.0
+joblib==1.2.0
 kiwisolver==1.2.0
 matplotlib==3.2.1
 mkl-fft==1.2.0
