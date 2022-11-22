@@ -19,7 +19,7 @@ numpy==1.18.5
 opencv-python==4.3.0.36
 pandas==1.1.5
 patsy==0.5.1
-Pillow==7.1.2
+Pillow==9.3.0
 protobuf==3.12.2
 pyparsing==2.4.7
 python-dateutil==2.8.1
