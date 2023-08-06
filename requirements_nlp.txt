@@ -39,7 +39,7 @@ tifffile==2020.6.3
 #torch==1.7.1
 #torchvision==0.6.0+cpu
 tqdm==4.48.2
-urllib3==1.25.10
+urllib3==1.26.5
 ConfigArgParse==1.2.3
 trojai
 transformers==4.2.1

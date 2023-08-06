@@ -45,4 +45,4 @@ torch==1.7.1
 torchvision==0.8.2
 tqdm==4.48.2
 typing-extensions @ file:///home/ktietz/src/ci_mi/typing_extensions_1612808209620/work
-urllib3==1.25.10
+urllib3==1.26.5
